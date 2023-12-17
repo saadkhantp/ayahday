@@ -56,7 +56,11 @@ function saveAsImage() {
     const image = canvas.toDataURL("image/png");
     const link = document.createElement("a");
     link.href = image;
-    link.download = "verse.png";
+
+    // Generate a unique filename using the current timestamp
+    const timestamp = new Date().toISOString().replace(/[\W_]+/g, ""); // ISO string with non-alphanumeric characters removed
+    link.download = `Ayah-${timestamp}.png`;
+
     link.click();
   });
 }
