@@ -1,3 +1,6 @@
+let currentLang = "en.asad"; // Default language is English
+let currentAyahNumber = 1; // Default Ayah number
+
 document.addEventListener("DOMContentLoaded", () => {
   fetchRandomVerse();
   document
@@ -6,14 +9,14 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("shareBtn")
     .addEventListener("click", shareOnWhatsApp);
+  document.getElementById("nextBtn").addEventListener("click", fetchNewVerse); // For fetching a new verse
   document
-    .getElementById("nextBtn")
-    .addEventListener("click", fetchRandomVerse); // Add this if you have a next button
+    .getElementById("langToggleBtn")
+    .addEventListener("click", toggleLanguage); // Language toggle button
 });
 
 async function fetchRandomVerse() {
-  const ayahNumber = Math.floor(Math.random() * 6236) + 1; // Random ayah number
-  const url = `https://al-qur-an-all-translations.p.rapidapi.com/v1/ayah/${ayahNumber}/en.asad`;
+  const url = `https://al-qur-an-all-translations.p.rapidapi.com/v1/ayah/${currentAyahNumber}/${currentLang}`;
   const options = {
     method: "GET",
     headers: {
@@ -31,20 +34,21 @@ async function fetchRandomVerse() {
   }
 }
 
+function fetchNewVerse() {
+  currentAyahNumber = Math.floor(Math.random() * 6236) + 1; // Random ayah number
+  fetchRandomVerse();
+}
+
 function displayVerse(data) {
-  // Display the verse
   const verseText = data.data.text;
   const surahInfo = data.data.surah;
 
-  // Construct the Surah information string
   const surahDetails = `
-      ${surahInfo.name} (${surahInfo.englishName}, ${surahInfo.englishNameTranslation})
-      <br>
-      ${surahInfo.revelationType}
-    
-  `;
+        ${surahInfo.name} (${surahInfo.englishName}, ${surahInfo.englishNameTranslation})
+        <br>
+        ${surahInfo.revelationType}
+    `;
 
-  // Update the innerHTML of the verseDisplay element
   document.getElementById(
     "verseDisplay"
   ).innerHTML = `<p class="verse">${verseText}</p><small>${surahDetails}</small>`;
@@ -58,7 +62,7 @@ function saveAsImage() {
     link.href = image;
 
     // Generate a unique filename using the current timestamp
-    const timestamp = new Date().toISOString().replace(/[\W_]+/g, ""); // ISO string with non-alphanumeric characters removed
+    const timestamp = new Date().toISOString().replace(/[\W_]+/g, "");
     link.download = `Ayah-${timestamp}.png`;
 
     link.click();
@@ -71,4 +75,13 @@ function shareOnWhatsApp() {
   );
   const whatsappUrl = `https://wa.me/?text=${text}`;
   window.open(whatsappUrl, "_blank");
+}
+
+function toggleLanguage() {
+  currentLang = currentLang === "en.asad" ? "ur.maududi" : "en.asad"; // Toggle language
+  fetchRandomVerse(); // Fetch the same Ayah in the new language
+
+  // Update button text to reflect the current language
+  document.getElementById("langToggleBtn").innerText =
+    currentLang === "en.asad" ? "اُردُو" : "English";
 }

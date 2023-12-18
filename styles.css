@@ -77,20 +77,45 @@ a:hover,
   background-color: #cb9b69 !important;
 }
 
+#langToggleBtn {
+  background-color: #2e536b;
+  color: #fff !important;
+  border-radius: 100px;
+  border: 0 !important;
+  width: 100px;
+  height: 50px;
+  border-color: transparent !important;
+  font-size: 18px;
+}
+#langToggleBtn:focus,
+#langToggleBtn:active {
+  border: 0 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
 .btn-container {
   width: 100%;
   display: flex;
   gap: 12px;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   margin-top: 24px;
+}
+
+.btn-container .left {
+  display: flex;
+  gap: 12px;
 }
 
 .footer {
   width: 100%;
   font-size: 10px;
-  opacity: 0.5;
   text-align: center;
   padding-bottom: 12px;
   color: #cb9b69;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 60px;
 }
