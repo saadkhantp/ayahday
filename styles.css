@@ -3,6 +3,7 @@
 body {
   font-family: "Cardo", serif;
   background-color: #001001;
+  padding: 0 16px;
 }
 
 @keyframes gradient {
@@ -27,6 +28,10 @@ a:visited {
 a:hover,
 .btn-link:hover {
   color: #fff;
+}
+
+.btn:focus {
+  box-shadow: none !important;
 }
 
 #verseDisplay {
