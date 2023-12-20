@@ -70,10 +70,13 @@ function saveAsImage() {
 }
 
 function shareOnWhatsApp() {
-  const text = encodeURIComponent(
+  const verseText = encodeURIComponent(
     document.getElementById("verseDisplay").innerText
   );
-  const whatsappUrl = `https://wa.me/?text=${text}`;
+  const appUrl = "https://ayahday.cc"; // Your app's URL
+  const whatsappMessage = `${verseText}%0A%0AExplore more at ${appUrl}`; // Append the app URL to the message
+
+  const whatsappUrl = `https://wa.me/?text=${whatsappMessage}`;
   window.open(whatsappUrl, "_blank");
 }
 
