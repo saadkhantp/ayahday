@@ -1,5 +1,49 @@
-let currentLang = "en.asad"; // Default language is English
-let currentAyahNumber = 1; // Default Ayah number
+let currentLang = "en.asad"; 
+let currentAyahNumber = 1;
+let touchstartX = 0;
+let touchendX = 0;
+const minSwipeDistance = 30; // Minimum distance to consider a swipe
+
+// const verseDisplay = document.getElementById('verseDisplay');
+
+// verseDisplay.addEventListener('touchstart', e => {
+//     touchstartX = e.changedTouches[0].screenX;
+// }, false);
+
+// verseDisplay.addEventListener('touchend', e => {
+//     touchendX = e.changedTouches[0].screenX;
+//     handleGesture();
+// }, false);
+
+const bodyElement = document.body;
+
+bodyElement.addEventListener('touchstart', e => {
+  touchstartX = e.changedTouches[0].screenX;
+}, false);
+
+bodyElement.addEventListener('touchend', e => {
+  touchendX = e.changedTouches[0].screenX;
+  handleGesture();
+}, false);
+
+function handleGesture() {
+    const distance = touchendX - touchstartX;
+
+    if (Math.abs(distance) > minSwipeDistance) {
+        if (distance < 0) {
+            fetchNewVerse(); // Left swipe detected
+        }
+    }
+}
+
+window.onload = function() {
+  if ('ontouchstart' in window || navigator.maxTouchPoints) {
+      document.getElementById("swipeInstruction").style.display = "block";
+  } else {
+      document.getElementById("swipeInstruction").style.display = "none";
+  }
+}
+
 
 document.addEventListener("DOMContentLoaded", () => {
   fetchRandomVerse();
@@ -53,6 +97,7 @@ function displayVerse(data) {
     "verseDisplay"
   ).innerHTML = `<p class="verse">${verseText}</p><small>${surahDetails}</small>`;
 }
+
 
 function saveAsImage() {
   const verseDiv = document.getElementById("verseDisplay");

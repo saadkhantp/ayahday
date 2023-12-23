@@ -4,6 +4,9 @@ body {
   font-family: "Cardo", serif;
   background-color: #001001;
   padding: 0 16px;
+  display: flex;
+  height: 100vh;
+  align-items: center;
 }
 
 @keyframes gradient {
@@ -46,6 +49,17 @@ a:hover,
   color: white;
   /* max-height: 380px;
   overflow-y: auto; */
+}
+
+.swipe-instruction{
+  text-align: center;
+  font-size: 16px;
+  display: flex !important;
+  justify-content: center;
+  gap: 6px;
+  align-items: normal;
+  padding: 24px 0;
+  color: rgba(255,255,255,0.2);
 }
 
 .logo {

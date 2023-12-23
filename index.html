@@ -67,6 +67,9 @@
       </div>
       <h1 class="hidden">Ayah Day - Daily Quran Verses</h1>
       <div id="verseDisplay" class="card card-body mb-3 text-center"></div>
+      <p id="swipeInstruction" class="swipe-instruction"><span class="material-symbols-outlined">
+        swipe_left
+        </span> Swipe left for the next Ayah</p>
       <div class="btn-container">
         <div class="left">
           <button id="saveImageBtn" class="btn btn-custom one btn-block">
@@ -80,6 +83,21 @@
           </button>
         </div>
         <button id="langToggleBtn" class="btn btn-primary">اُردُو</button>
+      </div>
+
+      <div class="footer">
+        <button
+          type="button"
+          class="btn btn-link mb-3"
+          data-bs-toggle="modal"
+          data-bs-target="#descriptionModal"
+        >
+          About AyahDay
+        </button>
+        <p>
+          &copy; 2024
+          <a href="mailto:saadkhan.net@gmail.com">thesaadkhan</a>
+        </p>
       </div>
     </div>
     <div
@@ -144,21 +162,6 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <div class="footer">
-      <button
-        type="button"
-        class="btn btn-link mb-3"
-        data-bs-toggle="modal"
-        data-bs-target="#descriptionModal"
-      >
-        About AyahDay
-      </button>
-      <p>
-        &copy; 2024
-        <a href="mailto:saadkhan.net@gmail.com">thesaadkhan</a>
-      </p>
     </div>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
