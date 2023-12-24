@@ -1,0 +1,21 @@
+{
+  "short_name": "AyahDay",
+  "name": "Ayah Day - Daily Quran Verses",
+  "icons": [
+    {
+      "src": "./ayah-day-logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./ayah-day-logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#001001",
+  "theme_color": "#CB9B69"
+}
