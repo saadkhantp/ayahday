@@ -36,15 +36,6 @@ function handleGesture() {
     }
 }
 
-window.onload = function() {
-  if ('ontouchstart' in window || navigator.maxTouchPoints) {
-      document.getElementById("swipeInstruction").style.display = "block";
-  } else {
-      document.getElementById("swipeInstruction").style.display = "none";
-  }
-}
-
-
 document.addEventListener("DOMContentLoaded", () => {
   fetchRandomVerse();
   document
@@ -57,6 +48,12 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("langToggleBtn")
     .addEventListener("click", toggleLanguage); // Language toggle button
+
+    if ('ontouchstart' in window || navigator.maxTouchPoints) {
+        document.getElementById("swipeInstruction").style.display = "flex";
+    } else {
+        document.getElementById("swipeInstruction").style.display = "none";
+    }
 });
 
 async function fetchRandomVerse() {
