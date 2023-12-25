@@ -92,7 +92,7 @@ function displayVerse(data) {
 
   document.getElementById(
     "verseDisplay"
-  ).innerHTML = `<p class="verse">${verseText}</p><small>${surahDetails}</small>`;
+  ).innerHTML = `<div><p class="verse">${verseText}</p><small>${surahDetails}</small></div>`;
 }
 
 
