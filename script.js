@@ -2,18 +2,21 @@ let currentLang = "en.asad";
 let currentAyahNumber = 1;
 let touchstartX = 0;
 let touchendX = 0;
-const minSwipeDistance = 30; // Minimum distance to consider a swipe
+const minSwipeDistance = 30;
 
-// const verseDisplay = document.getElementById('verseDisplay');
-
-// verseDisplay.addEventListener('touchstart', e => {
-//     touchstartX = e.changedTouches[0].screenX;
-// }, false);
-
-// verseDisplay.addEventListener('touchend', e => {
-//     touchendX = e.changedTouches[0].screenX;
-//     handleGesture();
-// }, false);
+const backgroundImages = [
+  "url('./images/sky-1.jpg')",
+  "url('./images/sky-2.jpg')",
+  "url('./images/sky-3.jpg')",
+  "url('./images/sky-4.jpg')",
+  "url('./images/sky-5.jpg')",
+  "url('./images/sky-6.jpg')",
+  "url('./images/sky-7.jpg')",
+  "url('./images/sky-8.jpg')",
+  "url('./images/sky-9.jpg')",
+  "url('./images/sky-10.jpg')",
+  "url('./images/sky-11.jpg')"
+];
 
 const bodyElement = document.body;
 
@@ -85,31 +88,38 @@ function displayVerse(data) {
   const surahInfo = data.data.surah;
 
   const surahDetails = `
-        ${surahInfo.name} (${surahInfo.englishName}, ${surahInfo.englishNameTranslation})
-        <br>
-        ${surahInfo.revelationType}
-    `;
+      ${surahInfo.name} (${surahInfo.englishName}, ${surahInfo.englishNameTranslation})
+      <br>
+      ${surahInfo.revelationType}
+  `;
 
   document.getElementById(
-    "verseDisplay"
-  ).innerHTML = `<div><p class="verse">${verseText}</p><small>${surahDetails}</small></div>`;
+      "verseDisplay"
+  ).innerHTML = `<p class="verse">${verseText}</p><small class="surah">${surahDetails}</small>`;
+
+  changeBackgroundImage(); // Change background image with each new Ayah
 }
 
+function changeBackgroundImage() {
+  const randomImage = backgroundImages[Math.floor(Math.random() * backgroundImages.length)];
+  const verseDisplayElement = document.getElementById("verseDisplay");
+  verseDisplayElement.style.backgroundImage = randomImage;
+}
 
 function saveAsImage() {
   const verseDiv = document.getElementById("verseDisplay");
-  html2canvas(verseDiv).then((canvas) => {
-    const image = canvas.toDataURL("image/png");
-    const link = document.createElement("a");
-    link.href = image;
-
-    // Generate a unique filename using the current timestamp
-    const timestamp = new Date().toISOString().replace(/[\W_]+/g, "");
-    link.download = `Ayah-${timestamp}.png`;
-
-    link.click();
-  });
+  setTimeout(() => {
+    html2canvas(verseDiv).then((canvas) => {
+      const image = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = image;
+      const timestamp = new Date().toISOString().replace(/[\W_]+/g, "");
+      link.download = `Ayah-${timestamp}.png`;
+      link.click();
+    });
+  }, 500);
 }
+
 
 function shareOnWhatsApp() {
   const verseText = encodeURIComponent(
@@ -123,10 +133,17 @@ function shareOnWhatsApp() {
 }
 
 function toggleLanguage() {
-  currentLang = currentLang === "en.asad" ? "ur.maududi" : "en.asad"; // Toggle language
-  fetchRandomVerse(); // Fetch the same Ayah in the new language
+  const verseDisplay = document.getElementById("verseDisplay");
 
-  // Update button text to reflect the current language
-  document.getElementById("langToggleBtn").innerText =
-    currentLang === "en.asad" ? "اُردُو" : "English";
+  if (currentLang === "en.asad") {
+      currentLang = "ur.maududi";
+      verseDisplay.classList.add("urdu-style"); // Add Urdu-specific styles
+      document.getElementById("langToggleBtn").innerText = "English";
+  } else {
+      currentLang = "en.asad";
+      verseDisplay.classList.remove("urdu-style"); // Remove Urdu-specific styles
+      document.getElementById("langToggleBtn").innerText = "اُردُو";
+  }
+
+  fetchRandomVerse(); // Fetch the same Ayah in the new language
 }
