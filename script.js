@@ -1,5 +1,5 @@
 let currentLang = "en.asad"; 
-let currentAyahNumber = 1;
+let currentAyahNumber =  Math.floor(Math.random() * 6236) + 1;;
 let touchstartX = 0;
 let touchendX = 0;
 const minSwipeDistance = 30;
