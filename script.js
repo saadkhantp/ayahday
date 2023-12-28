@@ -1,5 +1,5 @@
 let currentLang = "en.asad"; 
-let currentAyahNumber =  Math.floor(Math.random() * 6236) + 1;;
+let currentAyahNumber = Math.floor(Math.random() * 6236) + 1;
 let touchstartX = 0;
 let touchendX = 0;
 const minSwipeDistance = 30;
@@ -18,39 +18,16 @@ const backgroundImages = [
   "url('./images/sky-11.jpg')"
 ];
 
-const bodyElement = document.body;
+let ayahHistory = [];
 
-bodyElement.addEventListener('touchstart', e => {
-  touchstartX = e.changedTouches[0].screenX;
-}, false);
-
-bodyElement.addEventListener('touchend', e => {
-  touchendX = e.changedTouches[0].screenX;
-  handleGesture();
-}, false);
-
-function handleGesture() {
-    const distance = touchendX - touchstartX;
-
-    if (Math.abs(distance) > minSwipeDistance) {
-        if (distance < 0) {
-            fetchNewVerse(); // Left swipe detected
-        }
-    }
-}
 
 document.addEventListener("DOMContentLoaded", () => {
-  fetchRandomVerse();
-  document
-    .getElementById("saveImageBtn")
-    .addEventListener("click", saveAsImage);
-  document
-    .getElementById("shareBtn")
-    .addEventListener("click", shareOnWhatsApp);
-  document.getElementById("nextBtn").addEventListener("click", fetchNewVerse); // For fetching a new verse
-  document
-    .getElementById("langToggleBtn")
-    .addEventListener("click", toggleLanguage); // Language toggle button
+    fetchAyah();
+    document.getElementById("saveImageBtn").addEventListener("click", saveAsImage);
+    document.getElementById("shareBtn").addEventListener("click", shareOnWhatsApp);
+    document.getElementById("nextBtn").addEventListener("click", fetchNewVerse);
+    document.getElementById("prevBtn").addEventListener("click", fetchPrevVerse);
+    document.getElementById("langToggleBtn").addEventListener("click", toggleLanguage);
 
     if ('ontouchstart' in window || navigator.maxTouchPoints) {
         document.getElementById("swipeInstruction").style.display = "flex";
@@ -59,91 +36,102 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-async function fetchRandomVerse() {
-  const url = `https://al-qur-an-all-translations.p.rapidapi.com/v1/ayah/${currentAyahNumber}/${currentLang}`;
-  const options = {
-    method: "GET",
-    headers: {
-      "X-RapidAPI-Key": "b3c57eb87amshbab2ddabc510d80p1d343bjsn74bf4f16e4f5",
-      "X-RapidAPI-Host": "al-qur-an-all-translations.p.rapidapi.com",
-    },
-  };
+async function fetchAyah() {
+    const url = `https://al-qur-an-all-translations.p.rapidapi.com/v1/ayah/${currentAyahNumber}/${currentLang}`;
+    const options = {
+        method: "GET",
+        headers: {
+            "X-RapidAPI-Key": "b3c57eb87amshbab2ddabc510d80p1d343bjsn74bf4f16e4f5",
+            "X-RapidAPI-Host": "al-qur-an-all-translations.p.rapidapi.com",
+        },
+    };
 
-  try {
-    const response = await fetch(url, options);
-    const data = await response.json();
-    displayVerse(data);
-  } catch (error) {
-    console.error("Error fetching verse:", error);
-  }
+    try {
+        const response = await fetch(url, options);
+        const data = await response.json();
+        displayVerse(data);
+    } catch (error) {
+        console.error("Error fetching verse:", error);
+    }
 }
 
 function fetchNewVerse() {
-  currentAyahNumber = Math.floor(Math.random() * 6236) + 1; // Random ayah number
-  fetchRandomVerse();
+  if (ayahHistory.length >= 2) {
+      ayahHistory.shift(); 
+  }
+  ayahHistory.push(currentAyahNumber);
+
+  currentAyahNumber = Math.floor(Math.random() * 6236) + 1;
+  fetchAyah();
 }
 
+
+function fetchPrevVerse() {
+  if (ayahHistory.length > 0) {
+      currentAyahNumber = ayahHistory.pop();
+      fetchAyah();
+  } else {
+      console.log("No previous Ayah available.");
+  }
+}
+
+
 function displayVerse(data) {
-  const verseText = data.data.text;
-  const surahInfo = data.data.surah;
+    const verseText = data.data.text;
+    const surahInfo = data.data.surah;
 
-  const surahDetails = `
-      ${surahInfo.name} (${surahInfo.englishName}, ${surahInfo.englishNameTranslation})
-      <br>
-      ${surahInfo.revelationType}
-  `;
+    const surahDetails = `
+        ${surahInfo.name} (${surahInfo.englishName}, ${surahInfo.englishNameTranslation})
+        <br>
+        ${surahInfo.revelationType}
+    `;
 
-  document.getElementById(
-      "verseDisplay"
-  ).innerHTML = `<p class="verse">${verseText}</p><small class="surah">${surahDetails}</small>`;
-
-  changeBackgroundImage(); // Change background image with each new Ayah
+    const verseDisplay = document.getElementById("verseDisplay");
+    verseDisplay.innerHTML = `<p class="verse">${verseText}</p><small class="surah">${surahDetails}</small>`;
+    changeBackgroundImage();
 }
 
 function changeBackgroundImage() {
-  const randomImage = backgroundImages[Math.floor(Math.random() * backgroundImages.length)];
-  const verseDisplayElement = document.getElementById("verseDisplay");
-  verseDisplayElement.style.backgroundImage = randomImage;
+    const randomImage = backgroundImages[Math.floor(Math.random() * backgroundImages.length)];
+    const verseDisplayElement = document.getElementById("verseDisplay");
+    verseDisplayElement.style.backgroundImage = randomImage;
 }
 
 function saveAsImage() {
-  const verseDiv = document.getElementById("verseDisplay");
-  setTimeout(() => {
-    html2canvas(verseDiv).then((canvas) => {
-      const image = canvas.toDataURL("image/png");
-      const link = document.createElement("a");
-      link.href = image;
-      const timestamp = new Date().toISOString().replace(/[\W_]+/g, "");
-      link.download = `Ayah-${timestamp}.png`;
-      link.click();
-    });
-  }, 500);
+    const verseDiv = document.getElementById("verseDisplay");
+    setTimeout(() => {
+        html2canvas(verseDiv, {allowTaint: true}).then((canvas) => {
+            const image = canvas.toDataURL("image/png");
+            const link = document.createElement("a");
+            link.href = image;
+            const timestamp = new Date().toISOString().replace(/[\W_]+/g, "");
+            link.download = `Ayah-${timestamp}.png`;
+            link.click();
+        });
+    }, 500);
 }
 
-
 function shareOnWhatsApp() {
-  const verseText = encodeURIComponent(
-    document.getElementById("verseDisplay").innerText
-  );
-  const appUrl = "https://ayahday.cc"; // Your app's URL
-  const whatsappMessage = `${verseText}%0A%0AExplore more at ${appUrl}`; // Append the app URL to the message
+    const verseText = encodeURIComponent(document.getElementById("verseDisplay").innerText);
+    const appUrl = "https://ayahday.cc";
+    const whatsappMessage = `${verseText}%0A%0AExplore more at ${appUrl}`;
 
-  const whatsappUrl = `https://wa.me/?text=${whatsappMessage}`;
-  window.open(whatsappUrl, "_blank");
+    const whatsappUrl = `https://wa.me/?text=${whatsappMessage}`;
+    window.open(whatsappUrl, "_blank");
 }
 
 function toggleLanguage() {
-  const verseDisplay = document.getElementById("verseDisplay");
+    const verseDisplay = document.getElementById("verseDisplay");
 
-  if (currentLang === "en.asad") {
-      currentLang = "ur.maududi";
-      verseDisplay.classList.add("urdu-style"); // Add Urdu-specific styles
-      document.getElementById("langToggleBtn").innerText = "English";
-  } else {
-      currentLang = "en.asad";
-      verseDisplay.classList.remove("urdu-style"); // Remove Urdu-specific styles
-      document.getElementById("langToggleBtn").innerText = "اُردُو";
-  }
+    if (currentLang === "en.asad") {
+        currentLang = "ur.maududi";
+        verseDisplay.classList.add("urdu-style");
+        document.getElementById("langToggleBtn").innerText = "English";
+    } else {
+        currentLang = "en.asad";
+        verseDisplay.classList.remove("urdu-style");
+        document.getElementById("langToggleBtn").innerText = "اُردُو";
+    }
 
-  fetchRandomVerse(); // Fetch the same Ayah in the new language
+    fetchAyah();
 }

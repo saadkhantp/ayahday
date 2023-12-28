@@ -14,10 +14,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="./favicon.png" type="image/png" />
-    <title>Ayah Day - Daily Quran Verses in English and Urdu</title>
+    <title>AyahDay - Daily Quran Verses in English and Urdu</title>
     <meta
       name="description"
-      content="Discover the spiritual wisdom of the Quran with Ayah Day. Featuring daily Quranic verses (Ayat) in English and Urdu, perfect for reflection and sharing with friends and family."
+      content="Discover the spiritual wisdom of the Quran with AyahDay. Featuring daily Quranic verses (Ayat) in English and Urdu, perfect for reflection and sharing with friends and family."
     />
     <meta
       name="keywords"
@@ -36,25 +36,25 @@
 
     <meta
       property="og:title"
-      content="Ayah Day - Daily Quran Verses in English and Urdu"
+      content="AyahDay - Daily Quran Verses in English and Urdu"
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.ayahday.cc" />
     <meta property="og:image" content="https://www.ayahday.cc/og-ayahday.jpg" />
     <meta
       property="og:description"
-      content="Discover the spiritual wisdom of the Quran with Ayah Day. Featuring daily Quranic verses (Ayat) in English and Urdu, perfect for reflection and sharing."
+      content="Discover the spiritual wisdom of the Quran with AyahDay. Featuring daily Quranic verses (Ayat) in English and Urdu, perfect for reflection and sharing."
     />
-    <meta property="og:site_name" content="Ayah Day" />
+    <meta property="og:site_name" content="AyahDay" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
-      content="Ayah Day - Daily Quran Verses in English and Urdu"
+      content="AyahDay - Daily Quran Verses in English and Urdu"
     />
     <meta 
       name="twitter:description"
-      content="Discover the spiritual wisdom of the Quran with Ayah Day. Featuring daily Quranic verses (Ayat) in English and Urdu, perfect for reflection and sharing."
+      content="Discover the spiritual wisdom of the Quran with AyahDay. Featuring daily Quranic verses (Ayat) in English and Urdu, perfect for reflection and sharing."
     />
     <meta
       name="twitter:image"
@@ -62,30 +62,42 @@
     />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="Ayah Day">
+    <meta name="apple-mobile-web-app-title" content="AyahDay">
     <link rel="apple-touch-icon" href="./ayah-day-logo-192.png">
+
+    <script src="https://kit.fontawesome.com/65534763ba.js" crossorigin="anonymous"></script>
   </head>
   <body>
     <div class="container my-4">
-      <div class="logo">
-        <img src="./ayah-day-logo.png" alt="Daily Quran Verse" />
+      <div class="header">
+        <div class="logo">
+          <img src="./images/ayah-day-logo.svg" alt="Daily Quran Verse" />
+        </div>
+
+        <a href="" data-bs-toggle="modal"
+          data-bs-target="#descriptionModal">About AyahDay</a>
+
       </div>
-      <h1 class="hidden">Ayah Day - Daily Quran Verses</h1>
+      <h1 class="hidden">AyahDay - Daily Quran Verses</h1>
       
         <div id="verseDisplay" class="card card-body mb-3 text-center">
         </div>
       
       <div class="btn-container">
         <div class="left">
-          <button id="saveImageBtn" class="btn btn-custom one btn-block">
-            <i class="material-symbols-outlined"> image </i>
+          <button id="saveImageBtn" class="btn btn-custom white">
+            <i class="fa-solid fa-download"></i>
           </button>
-          <button id="shareBtn" class="btn btn-custom two btn-block">
-            <i class="material-symbols-outlined"> share </i>
+          <button id="shareBtn" class="btn btn-custom white">
+            <i class="fa-solid fa-share-nodes"></i>
           </button>
-          <button id="nextBtn" class="btn btn-custom three btn-block">
-            <i class="material-symbols-outlined"> keyboard_tab </i>
+          <button id="prevBtn" class="btn btn-custom white">
+            <i class="fa-solid fa-chevron-left"></i>
           </button>
+          <button id="nextBtn" class="btn btn-custom white">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+
         </div>
         <button id="langToggleBtn" class="btn btn-primary">اُردُو</button>
       </div>
@@ -96,10 +108,7 @@
           </span> Swipe left for the next Ayah</p>
         <p>
 
-          &copy; 2024
-          <a href="mailto:saadkhan.net@gmail.com">thesaadkhan</a> | 
-          <a href="" data-bs-toggle="modal"
-          data-bs-target="#descriptionModal">About AyahDay</a>
+          &copy; 2024 ayahday.cc
         </p>
       </div>
     </div>
@@ -114,7 +123,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h4 class="modal-title" id="descriptionModalLabel">
-              <strong>About Ayah Day</strong>
+              <strong>About AyahDay</strong>
             </h4>
             <button
               type="button"
@@ -125,7 +134,7 @@
           </div>
           <div class="modal-body">
             <p>
-              Ayah Day is your gateway to exploring the profound spiritual
+              AyahDay is your gateway to exploring the profound spiritual
               wisdom encapsulated within the Quran. Each interaction with the
               app – whether a simple refresh or a click – reveals a unique Ayah,
               complete with insightful commentary on its Surah. This app not
@@ -143,7 +152,7 @@
 
             <p>
               Designed for Muslims around the globe seeking a moment of peace
-              and reflection in their day, Ayah Day also extends its reach to
+              and reflection in their day, AyahDay also extends its reach to
               anyone interested in the teachings of Islam and the Quran. Share
               the wisdom of these Quranic verses with friends and family
               effortlessly, fostering a sense of unity and spiritual growth.
@@ -151,7 +160,7 @@
 
             <p>
               Whether you are deepening your existing knowledge or embarking on
-              a new journey of discovery, Ayah Day serves as a constant
+              a new journey of discovery, AyahDay serves as a constant
               companion in your spiritual journey, illuminating the path with
               the divine words of the Quran.
             </p>
