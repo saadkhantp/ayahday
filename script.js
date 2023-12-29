@@ -99,8 +99,6 @@ function fetchPrevVerse() {
     }
 }
 
-
-
 function displayVerse(data) {
     const verseText = data.data.text;
     const surahInfo = data.data.surah;
@@ -118,14 +116,21 @@ function displayVerse(data) {
 
 function changeBackgroundImage() {
     const randomImage = backgroundImages[Math.floor(Math.random() * backgroundImages.length)];
-    const verseDisplayElement = document.getElementById("verseDisplay");
-    verseDisplayElement.style.backgroundImage = randomImage;
+    document.body.style.backgroundImage = randomImage;
 }
 
 function saveAsImage() {
-    const verseDiv = document.getElementById("verseDisplay");
+    // Elements to hide before capture
+    const elementsToHide = document.querySelectorAll('.element-to-hide');
+
+    // Hide the elements
+    elementsToHide.forEach(el => el.style.visibility = 'hidden');
+
     setTimeout(() => {
-        html2canvas(verseDiv, {allowTaint: true}).then((canvas) => {
+        html2canvas(document.body, {allowTaint: true, useCORS: true}).then((canvas) => {
+            // Show the elements again
+            elementsToHide.forEach(el => el.style.visibility = '');
+
             const image = canvas.toDataURL("image/png");
             const link = document.createElement("a");
             link.href = image;
@@ -133,7 +138,7 @@ function saveAsImage() {
             link.download = `Ayah-${timestamp}.png`;
             link.click();
         });
-    }, 500);
+    }, 500); 
 }
 
 function shareOnWhatsApp() {

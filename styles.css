@@ -1,6 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Cardo:ital,wght@0,400;0,700;1,400&display=swap");
 @import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@500&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=League+Spartan&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600&display=swap');
 body {
   font-family: 'League Spartan', sans-serif;
   background-color: #001001;
@@ -8,6 +8,21 @@ body {
   display: flex;
   height: 100vh;
   align-items: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+body::after{
+  content: "";
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(-45deg, #001001, #2e536b, #564020, #001001);
+  background-size: 400% 400%;
+  animation: gradient 10s ease infinite;
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0.8;
 }
 
 @keyframes fadeIn {
@@ -33,15 +48,23 @@ body {
 }
 
 a,
-.btn-link,
 a:visited {
   color: #cb9b69 !important;
   text-decoration: none;
 }
 
-a:hover,
-.btn-link:hover {
+a:hover {
   color: #fff;
+}
+
+.btn-about{
+  color: white;
+  background-color: transparent;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-decoration: none;
+  padding: 0;
 }
 
 .header{
@@ -55,6 +78,7 @@ a:hover,
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  z-index: 99;
 }
 
 .btn:focus {
@@ -66,16 +90,18 @@ a:hover,
 }
 
 #verseDisplay {
-  border: 0 !important;
-  color: white;
+  border: 1px solid white !important;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  border-radius: 6px;
-  background-size: cover;
+  border-radius: 12px;
+  color: white;
+  background-color: transparent;
+  position: relative;
+  z-index: 99;
 }
 
-#verseDisplay::after{
+/* #verseDisplay::after{
   content: "";
   width: 100%;
   height: 100%;
@@ -87,15 +113,15 @@ a:hover,
   top: 0;
   border-radius: 6px;
   opacity: 0.8;
-}
+} */
 
 #verseDisplay .surah::before{
   content: "";
-  height: 3px;
+  height: 1px;
   width: 100px;
   display: block;
   background: rgba(255,255,255,0.5);
-  margin-bottom: 16px;
+  margin: 24px 0;
 }
 
 #verseDisplay .verse,
@@ -104,6 +130,10 @@ a:hover,
   position: relative;
   z-index: 9;
   text-align: left;
+}
+
+#verseDisplay .verse{
+  margin-bottom: 0;
 }
 
 #verseDisplay.urdu-style .verse {
@@ -122,6 +152,8 @@ a:hover,
   text-align: center;
   margin-bottom: 24px;
   padding-top: 24px;
+  position: relative;
+  z-index: 99;
 }
 
 .logo img {
@@ -130,7 +162,7 @@ a:hover,
 }
 
 .verse {
-  font-size: 22px;
+  font-size: 24px;
   line-height: 140%;
   font-weight: 700;
 }
@@ -214,7 +246,7 @@ a:hover,
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 60px;
+  margin-top: 24px;
 }
 
 .swipe-instruction{
@@ -223,7 +255,7 @@ a:hover,
   justify-content: center;
   gap: 6px;
   align-items: center;
-  padding: 0 0 24px 0;
+  padding: 0 0 12px 0;
   margin: 0;
   color: rgba(255,255,255,0.2);
 }

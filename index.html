@@ -68,14 +68,29 @@
     <script src="https://kit.fontawesome.com/65534763ba.js" crossorigin="anonymous"></script>
   </head>
   <body>
+
+    <div class="hidden">
+      <img src="./images/sky-1.jpg" alt="AyahDay" />
+      <img src="./images/sky-2.jpg" alt="AyahDay" />
+      <img src="./images/sky-3.jpg" alt="AyahDay" />
+      <img src="./images/sky-4.jpg" alt="AyahDay" />
+      <img src="./images/sky-5.jpg" alt="AyahDay" />
+      <img src="./images/sky-6.jpg" alt="AyahDay" />
+      <img src="./images/sky-7.jpg" alt="AyahDay" />
+      <img src="./images/sky-8.jpg" alt="AyahDay" />
+      <img src="./images/sky-9.jpg" alt="AyahDay" />
+      <img src="./images/sky-10.jpg" alt="AyahDay" />
+      <img src="./images/sky-11.jpg" alt="AyahDay" />
+      
+    </div>
     <div class="container my-4">
       <div class="header">
         <div class="logo">
           <img src="./images/ayah-day-logo.svg" alt="Daily Quran Verse" />
         </div>
 
-        <a href="" data-bs-toggle="modal"
-          data-bs-target="#descriptionModal">About AyahDay</a>
+        <button class="btn btn-link btn-about element-to-hide"  data-bs-toggle="modal"
+          data-bs-target="#descriptionModal" >About</a>
 
       </div>
       <h1 class="hidden">AyahDay - Daily Quran Verses</h1>
@@ -83,7 +98,7 @@
         <div id="verseDisplay" class="card card-body mb-3 text-center">
         </div>
       
-      <div class="btn-container">
+      <div class="btn-container element-to-hide"> 
         <div class="left">
           <button id="saveImageBtn" class="btn btn-custom white">
             <i class="fa-solid fa-download"></i>
@@ -103,10 +118,11 @@
       </div>
 
       <div class="footer">
-        <p id="swipeInstruction" class="swipe-instruction"><span class="material-symbols-outlined">
-          swipe_left
-          </span> Swipe left for the next Ayah</p>
-        <p>
+        <p id="swipeInstruction" class="swipe-instruction element-to-hide"><span class="material-symbols-outlined">
+          swipe
+          </span> Swipe Left or Right</p>
+        <p style="  position: relative;
+        z-index: 99;">
 
           &copy; 2024 ayahday.cc
         </p>
