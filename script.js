@@ -1,5 +1,6 @@
 let currentLang = "en.asad"; 
 let currentAyahNumber = Math.floor(Math.random() * 6236) + 1;
+let previousAyahNumber = null;  // Store the last Ayah number viewed
 let touchstartX = 0;
 let touchendX = 0;
 const minSwipeDistance = 30;
@@ -19,6 +20,7 @@ const backgroundImages = [
 ];
 
 let ayahHistory = [];
+let historyIndex = 0;  // Track the current position in the history
 
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -26,7 +28,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("saveImageBtn").addEventListener("click", saveAsImage);
     document.getElementById("shareBtn").addEventListener("click", shareOnWhatsApp);
     document.getElementById("nextBtn").addEventListener("click", fetchNewVerse);
-    document.getElementById("prevBtn").addEventListener("click", fetchPrevVerse);
+    const prevBtn = document.getElementById("prevBtn");
+    prevBtn.classList.add("disabled"); // Disable by default
+    prevBtn.addEventListener("click", fetchPrevVerse);
     document.getElementById("langToggleBtn").addEventListener("click", toggleLanguage);
 
     if ('ontouchstart' in window || navigator.maxTouchPoints) {
@@ -34,7 +38,29 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
         document.getElementById("swipeInstruction").style.display = "none";
     }
+
+    const verseDisplay = document.getElementById("verseDisplay");
+    verseDisplay.addEventListener('touchstart', e => {
+        touchstartX = e.changedTouches[0].screenX;
+    }, false);
+
+    verseDisplay.addEventListener('touchend', e => {
+        touchendX = e.changedTouches[0].screenX;
+        handleGesture();
+    }, false);
 });
+
+function handleGesture() {
+    const distance = touchendX - touchstartX;
+
+    if (Math.abs(distance) > minSwipeDistance) {
+        if (distance < 0) {
+            fetchNewVerse(); 
+        } else if (distance > 0) {
+            fetchPrevVerse();
+        }
+    }
+}
 
 async function fetchAyah() {
     const url = `https://al-qur-an-all-translations.p.rapidapi.com/v1/ayah/${currentAyahNumber}/${currentLang}`;
@@ -56,24 +82,23 @@ async function fetchAyah() {
 }
 
 function fetchNewVerse() {
-  if (ayahHistory.length >= 2) {
-      ayahHistory.shift(); 
-  }
-  ayahHistory.push(currentAyahNumber);
-
-  currentAyahNumber = Math.floor(Math.random() * 6236) + 1;
-  fetchAyah();
+    previousAyahNumber = currentAyahNumber;  // Store the current Ayah
+    currentAyahNumber = Math.floor(Math.random() * 6236) + 1;
+    fetchAyah();
+    document.getElementById("prevBtn").classList.remove("disabled");
 }
-
 
 function fetchPrevVerse() {
-  if (ayahHistory.length > 0) {
-      currentAyahNumber = ayahHistory.pop();
-      fetchAyah();
-  } else {
-      console.log("No previous Ayah available.");
-  }
+    if (previousAyahNumber !== null) {
+        currentAyahNumber = previousAyahNumber;
+        previousAyahNumber = null;  // Reset the previous Ayah
+        fetchAyah();
+        document.getElementById("prevBtn").classList.add("disabled");
+    } else {
+        console.log("No previous Ayah available.");
+    }
 }
+
 
 
 function displayVerse(data) {

@@ -164,6 +164,12 @@ a:hover,
   background-color: transparent !important;
 }
 
+.btn.disabled {
+  opacity: 0.4 !important;
+  pointer-events: none;
+}
+
+
 #langToggleBtn {
   background-color: transparent !important;
   color: #fff !important;
