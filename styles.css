@@ -136,16 +136,24 @@ a:hover {
   margin-bottom: 0;
 }
 
+#verseDisplay.urdu-style{
+  text-align: right;
+  direction: rtl;
+  word-wrap: normal;
+}
+
 #verseDisplay.urdu-style .verse {
   font-family: 'Noto Nastaliq Urdu', serif;
   font-size: 16px;
   line-height: 250%;
+  word-wrap: normal;
 }
 
 #verseDisplay.urdu-style .verse,
 #verseDisplay.urdu-style .surah{
   text-align: right;
   direction: rtl;
+  word-wrap: normal;
 }
 
 .logo {
