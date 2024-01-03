@@ -134,18 +134,13 @@ function changeBackgroundImage() {
 }
 
 function saveAsImage() {
-  // Elements to hide before capture
   const elementsToHide = document.querySelectorAll(".element-to-hide");
-
-  // Hide the elements
   elementsToHide.forEach((el) => (el.style.visibility = "hidden"));
 
   setTimeout(() => {
     html2canvas(document.body, { allowTaint: true, useCORS: true }).then(
       (canvas) => {
-        // Show the elements again
         elementsToHide.forEach((el) => (el.style.visibility = ""));
-
         const image = canvas.toDataURL("image/png");
         const link = document.createElement("a");
         link.href = image;
