@@ -1,8 +1,8 @@
 @import url("https://fonts.googleapis.com/css2?family=Cardo:ital,wght@0,400;0,700;1,400&display=swap");
-@import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@500&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600&display=swap");
 body {
-  font-family: 'League Spartan', sans-serif;
+  font-family: "League Spartan", sans-serif;
   background-color: #001001;
   padding: 0 16px;
   display: flex;
@@ -12,7 +12,7 @@ body {
   background-repeat: no-repeat;
 }
 
-body::after{
+body::after {
   content: "";
   width: 100%;
   height: 100vh;
@@ -26,14 +26,17 @@ body::after{
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .fade-in {
   animation: fadeIn 1s ease-out;
 }
-
 
 @keyframes gradient {
   0% {
@@ -47,6 +50,32 @@ body::after{
   }
 }
 
+@keyframes swipeLeft {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes swipeRight {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.swipe-left {
+  animation: swipeLeft 0.5s forwards;
+}
+
+.swipe-right {
+  animation: swipeRight 0.5s forwards;
+}
+
 a,
 a:visited {
   color: #cb9b69 !important;
@@ -57,7 +86,7 @@ a:hover {
   color: #fff;
 }
 
-.btn-about{
+.btn-about {
   color: white;
   background-color: transparent;
   text-transform: uppercase;
@@ -67,7 +96,7 @@ a:hover {
   padding: 0;
 }
 
-.header{
+.header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -90,7 +119,7 @@ a:hover {
 }
 
 #verseDisplay {
-  border: 1px solid white !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -115,42 +144,42 @@ a:hover {
   opacity: 0.8;
 } */
 
-#verseDisplay .surah::before{
+#verseDisplay .surah::before {
   content: "";
   height: 1px;
   width: 100px;
   display: block;
-  background: rgba(255,255,255,0.5);
+  background: rgba(255, 255, 255, 0.5);
   margin: 24px 0;
 }
 
 #verseDisplay .verse,
-#verseDisplay .surah{
+#verseDisplay .surah {
   text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
   position: relative;
   z-index: 9;
   text-align: left;
 }
 
-#verseDisplay .verse{
+#verseDisplay .verse {
   margin-bottom: 0;
 }
 
-#verseDisplay.urdu-style{
+#verseDisplay.urdu-style {
   text-align: right;
   direction: rtl;
   word-wrap: normal;
 }
 
 #verseDisplay.urdu-style .verse {
-  font-family: 'Noto Nastaliq Urdu', serif;
+  font-family: "Noto Nastaliq Urdu", serif;
   font-size: 16px;
   line-height: 250%;
   word-wrap: normal;
 }
 
 #verseDisplay.urdu-style .verse,
-#verseDisplay.urdu-style .surah{
+#verseDisplay.urdu-style .surah {
   text-align: right;
   direction: rtl;
   word-wrap: normal;
@@ -199,7 +228,7 @@ a:hover {
   background-color: #cb9b69 !important;
 }
 
-.btn-custom.white{
+.btn-custom.white {
   border-color: #fff !important;
   background-color: transparent !important;
 }
@@ -208,7 +237,6 @@ a:hover {
   opacity: 0.4 !important;
   pointer-events: none;
 }
-
 
 #langToggleBtn {
   background-color: transparent !important;
@@ -241,7 +269,7 @@ a:hover {
   gap: 12px;
 }
 
-.modal-body p{
+.modal-body p {
   font-size: 18px;
 }
 
@@ -257,7 +285,7 @@ a:hover {
   margin-top: 24px;
 }
 
-.swipe-instruction{
+.swipe-instruction {
   text-align: center;
   font-size: 14px;
   justify-content: center;
@@ -265,9 +293,9 @@ a:hover {
   align-items: center;
   padding: 0 0 12px 0;
   margin: 0;
-  color: rgba(255,255,255,0.2);
+  color: rgba(255, 255, 255, 0.2);
 }
 
-.swipe-instruction > span{
+.swipe-instruction > span {
   font-size: 14px;
 }

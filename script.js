@@ -64,13 +64,32 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function handleGesture() {
+  const verseDisplay = document.getElementById("verseDisplay");
   const distance = touchendX - touchstartX;
 
   if (Math.abs(distance) > minSwipeDistance) {
     if (distance < 0) {
-      fetchNewVerse();
-    } else if (distance > 0) {
-      fetchPrevVerse();
+      // Swipe left
+      verseDisplay.classList.add("swipe-left");
+      verseDisplay.addEventListener(
+        "animationend",
+        () => {
+          fetchNewVerse(); // Load the new content
+          verseDisplay.classList.remove("swipe-left"); // Reset the animation
+        },
+        { once: true }
+      );
+    } else {
+      // Swipe right
+      verseDisplay.classList.add("swipe-right");
+      verseDisplay.addEventListener(
+        "animationend",
+        () => {
+          fetchPrevVerse(); // Load the previous content
+          verseDisplay.classList.remove("swipe-right"); // Reset the animation
+        },
+        { once: true }
+      );
     }
   }
 }
