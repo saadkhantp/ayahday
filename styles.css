@@ -6,7 +6,7 @@ body {
   background-color: #001001;
   padding: 0 16px;
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
   align-items: center;
   background-size: cover;
   background-repeat: no-repeat;
@@ -15,11 +15,11 @@ body {
 body::after {
   content: "";
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   background: linear-gradient(-45deg, #001001, #2e536b, #564020, #001001);
   background-size: 400% 400%;
   animation: gradient 10s ease infinite;
-  position: absolute;
+  position: fixed;
   left: 0;
   top: 0;
   opacity: 0.8;
@@ -103,7 +103,7 @@ a:hover {
 }
 
 .container {
-  height: 100vh;
+  min-height: calc(100vh - 3rem);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -128,6 +128,7 @@ a:hover {
   background-color: transparent;
   position: relative;
   z-index: 99;
+  flex: 0 1 auto;
 }
 
 /* #verseDisplay::after{

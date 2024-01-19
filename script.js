@@ -24,9 +24,9 @@ let historyIndex = 0; // Track the current position in the history
 
 document.addEventListener("DOMContentLoaded", () => {
   fetchAyah();
-  document
-    .getElementById("saveImageBtn")
-    .addEventListener("click", saveAsImage);
+  // document
+  //   .getElementById("saveImageBtn")
+  //   .addEventListener("click", saveAsImage);
   document
     .getElementById("shareBtn")
     .addEventListener("click", shareOnWhatsApp);
@@ -152,24 +152,24 @@ function changeBackgroundImage() {
   document.body.style.backgroundImage = randomImage;
 }
 
-function saveAsImage() {
-  const elementsToHide = document.querySelectorAll(".element-to-hide");
-  elementsToHide.forEach((el) => (el.style.visibility = "hidden"));
+// function saveAsImage() {
+//   const elementsToHide = document.querySelectorAll(".element-to-hide");
+//   elementsToHide.forEach((el) => (el.style.visibility = "hidden"));
 
-  setTimeout(() => {
-    html2canvas(document.body, { allowTaint: true, useCORS: true }).then(
-      (canvas) => {
-        elementsToHide.forEach((el) => (el.style.visibility = ""));
-        const image = canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.href = image;
-        const timestamp = new Date().toISOString().replace(/[\W_]+/g, "");
-        link.download = `Ayah-${timestamp}.png`;
-        link.click();
-      }
-    );
-  }, 500);
-}
+//   setTimeout(() => {
+//     html2canvas(document.body, { allowTaint: true, useCORS: true }).then(
+//       (canvas) => {
+//         elementsToHide.forEach((el) => (el.style.visibility = ""));
+//         const image = canvas.toDataURL("image/png");
+//         const link = document.createElement("a");
+//         link.href = image;
+//         const timestamp = new Date().toISOString().replace(/[\W_]+/g, "");
+//         link.download = `Ayah-${timestamp}.png`;
+//         link.click();
+//       }
+//     );
+//   }, 500);
+// }
 
 function shareOnWhatsApp() {
   const verseText = encodeURIComponent(
