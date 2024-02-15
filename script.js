@@ -1,6 +1,6 @@
-let currentLang = "en.asad";
+let currentLang = localStorage.getItem("currentLang") || "en.asad";
 let currentAyahNumber = getRandomAyahNumber();
-let previousAyahNumber = null;
+let ayahHistory = [];
 let touchstartX = 0;
 let touchendX = 0;
 const minSwipeDistance = 30;
@@ -18,11 +18,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   await fetchAndDisplayAyah(currentAyahNumber);
   nextAyahData = await fetchAyah(getRandomAyahNumber());
   addEventListeners();
+  updateLanguageDisplay();
 });
 
 async function fetchAndDisplayAyah(ayahNumber) {
   const data = await fetchAyah(ayahNumber);
-  displayVerse(data);
+  if (data) displayVerse(data);
 }
 
 async function fetchAyah(ayahNumber) {
@@ -36,14 +37,18 @@ async function fetchAyah(ayahNumber) {
       `${API_CONFIG.url}/${ayahNumber}/${currentLang}`,
       options
     );
+    if (!response.ok) throw new Error("Failed to fetch Ayah");
     const data = await response.json();
     return data;
   } catch (error) {
     console.error("Error fetching verse:", error);
+    displayError("Error fetching verse. Please try again later.");
+    return null;
   }
 }
 
 function displayVerse(data) {
+  if (!data) return;
   const verseText = data.data.text;
   const surahInfo = data.data.surah;
   const surahDetails = `${surahInfo.name} (${surahInfo.englishName}, ${surahInfo.englishNameTranslation})<br>${surahInfo.revelationType}`;
@@ -97,6 +102,11 @@ function handleTouchStart(e) {
 function handleTouchEnd(e) {
   touchendX = e.changedTouches[0].screenX;
   handleGesture();
+}
+
+function displayError(message) {
+  const verseDisplay = document.getElementById("verseDisplay");
+  verseDisplay.innerHTML = `<p class="error">${message}</p>`;
 }
 
 function handleGesture() {
@@ -159,41 +169,56 @@ function shareOnWhatsApp() {
 }
 
 function toggleLanguage() {
-  const verseDisplay = document.getElementById("verseDisplay");
-  console.log("Current language before toggle:", currentLang); // Add this
   if (currentLang === "en.asad") {
     currentLang = "ur.maududi";
-    verseDisplay.classList.add("urdu-style");
-    document.getElementById("langToggleBtn").innerText = "English";
   } else {
     currentLang = "en.asad";
-    verseDisplay.classList.remove("urdu-style");
-    document.getElementById("langToggleBtn").innerText = "اُردُو";
   }
-  console.log("Current language after toggle:", currentLang); // Add this
-  console.log("fetchAndDisplayAyah function:", fetchAndDisplayAyah); // Add this
+  localStorage.setItem("currentLang", currentLang);
+  updateLanguageDisplay();
   fetchAndDisplayAyah(currentAyahNumber);
 }
 
+function updateLanguageDisplay() {
+  const verseDisplay = document.getElementById("verseDisplay");
+  const langToggleBtn = document.getElementById("langToggleBtn");
+  if (currentLang === "ur.maududi") {
+    verseDisplay.classList.add("urdu-style");
+    langToggleBtn.innerText = "English";
+  } else {
+    verseDisplay.classList.remove("urdu-style");
+    langToggleBtn.innerText = "اُردُو";
+  }
+}
+
+async function fetchNewVerse() {
+  ayahHistory.push(currentAyahNumber);
+  currentAyahNumber = getRandomAyahNumber();
+  const data = await fetchAyah(currentAyahNumber);
+  if (data) {
+    displayVerse(data);
+    nextAyahData = await fetchAyah(getRandomAyahNumber());
+  }
+  updatePrevButtonState();
+}
+
 function fetchPrevVerse() {
-  if (previousAyahNumber !== null) {
-    currentAyahNumber = previousAyahNumber;
-    previousAyahNumber = null; // Reset the previous Ayah
+  if (ayahHistory.length > 0) {
+    currentAyahNumber = ayahHistory.pop();
     fetchAndDisplayAyah(currentAyahNumber);
-    document.getElementById("prevBtn").classList.add("disabled");
+    updatePrevButtonState();
   } else {
     console.log("No previous Ayah available.");
   }
 }
-async function fetchNewVerse() {
-  previousAyahNumber = currentAyahNumber; // Store the current Ayah
-  currentAyahNumber = getRandomAyahNumber();
-  displayVerse(nextAyahData);
-  nextAyahData = await fetchAyah(currentAyahNumber); // Wait for the promise to resolve
-  if (previousAyahNumber !== null) {
-    document.getElementById("prevBtn").classList.remove("disabled");
+
+function updatePrevButtonState() {
+  const prevBtn = document.getElementById("prevBtn");
+  if (ayahHistory.length > 0) {
+    prevBtn.classList.remove("disabled");
+  } else {
+    prevBtn.classList.add("disabled");
   }
-  document.getElementById("verseDisplay").classList.add("fade-in");
 }
 
 function updateDateTime() {
@@ -202,7 +227,7 @@ function updateDateTime() {
     .toLocaleDateString(undefined, { weekday: "long" })
     .slice(0, 3);
   const month = date.toLocaleDateString(undefined, { month: "long" });
-  const year = date.getFullYear().toString().slice(2); // Get the last two digits of the year
+  const year = date.getFullYear().toString().slice(2);
   const dateNum = date.getDate();
 
   const dateString = `${day}, ${dateNum} ${month} '${year}`;
@@ -211,4 +236,4 @@ function updateDateTime() {
 }
 
 updateDateTime();
-setInterval(updateDateTime, 60000); // Update every minute
+setInterval(updateDateTime, 60000);
