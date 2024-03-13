@@ -221,6 +221,26 @@ function updatePrevButtonState() {
   }
 }
 
+document.getElementById("saveImageBtn").addEventListener("click", function () {
+  const elementsToHide = document.querySelectorAll(".element-to-hide");
+  elementsToHide.forEach((element) => {
+    element.style.visibility = "hidden";
+  });
+
+  html2canvas(document.body).then(function (canvas) {
+    elementsToHide.forEach((element) => {
+      element.style.visibility = "visible";
+    });
+    const timestamp = new Date().toISOString().replace(/[:.-]/g, "");
+    const fileName = `ayah-${currentAyahNumber}-${timestamp}.png`;
+
+    var link = document.createElement("a");
+    link.download = fileName;
+    link.href = canvas.toDataURL();
+    link.click();
+  });
+});
+
 function updateDateTime() {
   const date = new Date();
   const day = date
