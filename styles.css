@@ -5,15 +5,16 @@ html {
   margin: 0;
   padding: 0;
   height: 100%;
-}
-
-body {
   background: linear-gradient(
     144deg,
     rgba(2, 0, 36, 1) 0%,
     rgba(41, 41, 45, 1) 50%,
     rgba(78, 85, 87, 1) 100%
   ) !important;
+}
+
+body {
+  background: transparent;
   font-family: "League Spartan", sans-serif !important;
   padding: 0 16px;
   width: 100%;
