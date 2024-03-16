@@ -18,7 +18,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="content-type" content="text/html; charset=UTF8" />
-    <link rel="icon" href="./favicon.png" type="image/png" />
+    <link rel="icon" href="./ayah-day-logo-512.png" type="image/png" />
     <title>AyahDay - Daily Quran Verses in English and Urdu</title>
     <meta
       name="description"
@@ -78,24 +78,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.2/html2canvas.min.js"></script>
   </head>
   <body>
-    <div class="hidden">
-      <img src="./images/sky-1.jpg" alt="AyahDay" />
-      <img src="./images/sky-2.jpg" alt="AyahDay" />
-      <img src="./images/sky-3.jpg" alt="AyahDay" />
-      <img src="./images/sky-4.jpg" alt="AyahDay" />
-      <img src="./images/sky-5.jpg" alt="AyahDay" />
-      <img src="./images/sky-6.jpg" alt="AyahDay" />
-      <img src="./images/sky-7.jpg" alt="AyahDay" />
-      <img src="./images/sky-8.jpg" alt="AyahDay" />
-      <img src="./images/sky-9.jpg" alt="AyahDay" />
-      <img src="./images/sky-10.jpg" alt="AyahDay" />
-      <img src="./images/sky-11.jpg" alt="AyahDay" />
-    </div>
     <div class="container my-4">
       <div class="header">
-        <div class="logo">
-          <img src="./images/ayah-day-logo.svg" alt="Daily Quran Verse" />
-        </div>
+        <h1 class="element-to-hide" id="gradientLogo">AyahDay</h1>
+        <h1 id="screenshotLogo" style="display: none">
+          AyahDay.cc <span>Daily Quranic Verses</span>
+        </h1>
 
         <button
           class="btn btn-link btn-about element-to-hide"
@@ -105,11 +93,16 @@
           About
         </button>
       </div>
-      <h1 class="hidden">AyahDay - Daily Quran Verses</h1>
 
       <div class="content">
         <div id="datetime"></div>
-        <div id="verseDisplay" class="card card-body mb-3 text-center"></div>
+        <div id="verseDisplay" class="card card-body mb-3">
+          <span
+            class="dummy-text"
+            style="visibility: hidden; text-indent: -5000px"
+            >پپپپپپپپ</span
+          >
+        </div>
         <div class="btn-container element-to-hide">
           <div class="left">
             <button id="saveImageBtn" class="btn btn-custom white">
@@ -129,13 +122,13 @@
         </div>
       </div>
 
-      <div class="footer">
+      <footer class="footer text-light">
         <p id="swipeInstruction" class="swipe-instruction element-to-hide">
           <span class="material-symbols-outlined"> swipe </span> Swipe Left or
           Right
         </p>
-        <p style="position: relative; z-index: 99">&copy; 2024 ayahday.cc</p>
-      </div>
+        <p style="position: relative; z-index: 99">&copy; 2024 AyahDay</p>
+      </footer>
     </div>
     <div
       class="modal fade"

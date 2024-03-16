@@ -54,26 +54,6 @@ function displayVerse(data) {
   const surahDetails = `${surahInfo.name} (${surahInfo.englishName}, ${surahInfo.englishNameTranslation})<br>${surahInfo.revelationType}`;
   const verseDisplay = document.getElementById("verseDisplay");
   verseDisplay.innerHTML = `<p class="verse">${verseText}</p><small class="surah">${surahDetails}</small>`;
-  changeBackgroundImage();
-}
-
-function changeBackgroundImage() {
-  const backgroundImages = [
-    "url('./images/sky-1.jpg')",
-    "url('./images/sky-2.jpg')",
-    "url('./images/sky-3.jpg')",
-    "url('./images/sky-4.jpg')",
-    "url('./images/sky-5.jpg')",
-    "url('./images/sky-6.jpg')",
-    "url('./images/sky-7.jpg')",
-    "url('./images/sky-8.jpg')",
-    "url('./images/sky-9.jpg')",
-    "url('./images/sky-10.jpg')",
-    "url('./images/sky-11.jpg')",
-  ];
-  const randomImage =
-    backgroundImages[Math.floor(Math.random() * backgroundImages.length)];
-  document.body.style.backgroundImage = randomImage;
 }
 
 function getRandomAyahNumber() {
@@ -184,10 +164,11 @@ function updateLanguageDisplay() {
   const langToggleBtn = document.getElementById("langToggleBtn");
   if (currentLang === "ur.maududi") {
     verseDisplay.classList.add("urdu-style");
-    langToggleBtn.innerText = "English";
+    langToggleBtn.innerHTML = "English";
   } else {
     verseDisplay.classList.remove("urdu-style");
-    langToggleBtn.innerText = "اُردُو";
+    langToggleBtn.innerHTML =
+      "<span style='font-family: Noto Nastaliq Urdu;'>اردو</span>";
   }
 }
 
@@ -224,19 +205,28 @@ function updatePrevButtonState() {
 document.getElementById("saveImageBtn").addEventListener("click", function () {
   const elementsToHide = document.querySelectorAll(".element-to-hide");
   elementsToHide.forEach((element) => {
-    element.style.visibility = "hidden";
+    element.style.display = "none";
   });
 
-  html2canvas(document.body).then(function (canvas) {
+  document.getElementById("gradientLogo").style.display = "none";
+  document.getElementById("screenshotLogo").style.display = "block";
+
+  html2canvas(document.body, {
+    backgroundColor: "#29292d", // Set your desired background color here
+  }).then(function (canvas) {
     elementsToHide.forEach((element) => {
-      element.style.visibility = "visible";
+      element.style.display = "flex";
     });
+
+    document.getElementById("gradientLogo").style.display = "block";
+    document.getElementById("screenshotLogo").style.display = "none";
+
     const timestamp = new Date().toISOString().replace(/[:.-]/g, "");
     const fileName = `ayah-${currentAyahNumber}-${timestamp}.png`;
 
     var link = document.createElement("a");
     link.download = fileName;
-    link.href = canvas.toDataURL();
+    link.href = canvas.toDataURL("image/png");
     link.click();
   });
 });
