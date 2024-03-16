@@ -211,8 +211,12 @@ document.getElementById("saveImageBtn").addEventListener("click", function () {
   document.getElementById("gradientLogo").style.display = "none";
   document.getElementById("screenshotLogo").style.display = "block";
 
-  html2canvas(document.body, {
-    backgroundColor: "#29292d",
+  // Capture the <html> element instead of <body>
+  html2canvas(document.documentElement, {
+    backgroundColor: "#29292d", // Ensuring the background color is set
+    scale: 1, // You can adjust the scale for better resolution
+    windowWidth: document.documentElement.scrollWidth,
+    windowHeight: document.documentElement.scrollHeight,
   }).then(function (canvas) {
     elementsToHide.forEach((element) => {
       element.style.display = "flex";

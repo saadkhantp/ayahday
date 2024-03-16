@@ -4,16 +4,10 @@
 html {
   margin: 0;
   padding: 0;
-  background: linear-gradient(
-    144deg,
-    rgba(2, 0, 36, 1) 0%,
-    rgba(41, 41, 45, 1) 50%,
-    rgba(78, 85, 87, 1) 100%
-  ) !important;
+  background: #29292d;
 }
 
 body {
-  background: transparent;
   font-family: "League Spartan", sans-serif !important;
   padding: 0 16px;
   width: 100%;
@@ -22,6 +16,14 @@ body {
   justify-content: center !important;
   align-items: center !important;
   transition: all 0.3s ease-in-out !important;
+  background: #29292d !important;
+  min-height: 100vh;
+  /* background: linear-gradient(
+    144deg,
+    rgba(2, 0, 36, 1) 0%,
+    rgba(41, 41, 45, 1) 50%,
+    rgba(78, 85, 87, 1) 100%
+  ) !important; */
 }
 
 h1#gradientLogo {
@@ -120,10 +122,10 @@ a:hover {
 }
 
 .container {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  gap: 32px;
   z-index: 99;
 }
 
