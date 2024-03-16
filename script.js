@@ -212,7 +212,7 @@ document.getElementById("saveImageBtn").addEventListener("click", function () {
   document.getElementById("screenshotLogo").style.display = "block";
 
   html2canvas(document.body, {
-    backgroundColor: "#29292d", // Set your desired background color here
+    backgroundColor: "#29292d",
   }).then(function (canvas) {
     elementsToHide.forEach((element) => {
       element.style.display = "flex";
