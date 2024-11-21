@@ -7,11 +7,7 @@ const minSwipeDistance = 30;
 let nextAyahData = null;
 
 const API_CONFIG = {
-  url: "https://al-qur-an-all-translations.p.rapidapi.com/v1/ayah",
-  headers: {
-    "X-RapidAPI-Key": "b3c57eb87amshbab2ddabc510d80p1d343bjsn74bf4f16e4f5",
-    "X-RapidAPI-Host": "al-qur-an-all-translations.p.rapidapi.com",
-  },
+  url: "https://api.alquran.cloud/v1/ayah",
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -27,19 +23,34 @@ async function fetchAndDisplayAyah(ayahNumber) {
 }
 
 async function fetchAyah(ayahNumber) {
-  const options = {
-    method: "GET",
-    headers: API_CONFIG.headers,
-  };
-
   try {
-    const response = await fetch(
-      `${API_CONFIG.url}/${ayahNumber}/${currentLang}`,
-      options
+    const arabicResponse = await fetch(
+      `${API_CONFIG.url}/${ayahNumber}/quran-uthmani`
     );
-    if (!response.ok) throw new Error("Failed to fetch Ayah");
-    const data = await response.json();
-    return data;
+
+    const translationEdition =
+      currentLang === "en.asad" ? "en.asad" : "ur.maududi";
+    const translationResponse = await fetch(
+      `${API_CONFIG.url}/${ayahNumber}/${translationEdition}`
+    );
+
+    if (!arabicResponse.ok || !translationResponse.ok)
+      throw new Error("Failed to fetch Ayah");
+
+    const arabicData = await arabicResponse.json();
+    const translationData = await translationResponse.json();
+
+    return {
+      data: {
+        text: translationData.data.text,
+        surah: {
+          name: arabicData.data.surah.name,
+          englishName: arabicData.data.surah.englishName,
+          englishNameTranslation: arabicData.data.surah.englishNameTranslation,
+          revelationType: arabicData.data.surah.revelationType,
+        },
+      },
+    };
   } catch (error) {
     console.error("Error fetching verse:", error);
     displayError("Error fetching verse. Please try again later.");
