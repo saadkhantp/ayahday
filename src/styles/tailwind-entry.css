@@ -1,4 +1,3 @@
-/* Same as solar-helper/src/index.css — Urdu fonts via fontsource (not Google Fonts CDN) */
 @import "@fontsource/noto-sans-arabic/400.css";
 @import "@fontsource/noto-sans-arabic/700.css";
 @import "@fontsource/noto-nastaliq-urdu/400.css";
@@ -77,6 +76,20 @@
   /* shadcn base-nova outline icon button feel */
   .btn-icon {
     @apply inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-foreground shadow-none transition-all outline-none hover:-translate-y-0.5 hover:border-solar-blue-400/40 hover:bg-muted focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 dark:border-input dark:bg-input/30 dark:hover:bg-input/50;
+  }
+
+  /** Same greens as solar-helper ResultsSidebar WhatsApp CTA */
+  .btn-icon-whatsapp {
+    @apply inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-transparent bg-[#075E54] text-white shadow-none transition-all outline-none hover:-translate-y-0.5 hover:bg-[#0d8073] hover:text-white focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 active:translate-y-px active:bg-[#054942] disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  /** shadcn TooltipContent-like (vanilla; no Radix) */
+  .share-tooltip {
+    @apply pointer-events-none invisible absolute bottom-full left-1/2 z-50 mb-2 w-max max-w-[min(16rem,calc(100vw-2rem))] -translate-x-1/2 rounded-md border border-border bg-popover px-3 py-1.5 text-sm text-popover-foreground opacity-0 shadow-md transition-opacity duration-200;
+  }
+
+  .share-tooltip.share-tooltip--open {
+    @apply visible opacity-100;
   }
 
   .text-gradient-solar {

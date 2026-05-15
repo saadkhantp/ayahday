@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en-PK" class="dark">
   <head>
     <meta charset="UTF-8" />
@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>AyahDay — Daily Quran Verses in English &amp; Urdu</title>
+    <title>AyahDay - Daily Quran Verses in English &amp; Urdu</title>
     <meta
       name="description"
       content="Free web app for daily Quranic verses (ayat) in English (Muhammad Asad) and Urdu (Maududi). Reflect, swipe, and share via WhatsApp. Powered by Al Quran Cloud."
@@ -20,7 +20,7 @@
     <link rel="alternate" hreflang="en-PK" href="https://www.ayahday.cc/" />
     <link rel="alternate" hreflang="ur-PK" href="https://www.ayahday.cc/" />
     <link rel="alternate" hreflang="x-default" href="https://www.ayahday.cc/" />
-    <link rel="icon" href="./ayah-day-logo-512.png" type="image/png" />
+    <link rel="icon" href="./favicon.png" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -39,27 +39,27 @@
     <meta property="og:url" content="https://www.ayahday.cc/" />
     <meta
       property="og:title"
-      content="AyahDay — Daily Quran Verses in English &amp; Urdu"
+      content="AyahDay - Daily Quran Verses in English &amp; Urdu"
     />
     <meta
       property="og:description"
       content="Free web app for daily Quranic verses in English and Urdu. Reflect, navigate, and share. Powered by Al Quran Cloud."
     />
-    <meta
-      property="og:image"
-      content="https://www.ayahday.cc/og-ayahday.jpg"
-    />
+    <meta property="og:image" content="https://www.ayahday.cc/og-preview.jpg" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
-      content="AyahDay — Daily Quran Verses in English &amp; Urdu"
+      content="AyahDay - Daily Quran Verses in English &amp; Urdu"
     />
     <meta
       name="twitter:description"
       content="Free web app for daily Quranic verses in English and Urdu. Reflect, navigate, and share."
     />
-    <meta name="twitter:image" content="https://www.ayahday.cc/og-ayahday.jpg" />
+    <meta
+      name="twitter:image"
+      content="https://www.ayahday.cc/og-ayahday.jpg"
+    />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta
       name="apple-mobile-web-app-status-bar-style"
@@ -125,7 +125,7 @@
               AyahDay
             </h1>
             <p
-              class="element-to-hide mt-0.5 text-xs text-solar-slate-300"
+              class="element-to-hide mt-0.5 text-xs font-medium text-solar-gold/95"
               id="tagline"
             >
               Daily Quranic verses in English &amp; Urdu
@@ -135,9 +135,7 @@
               class="hidden font-logo text-2xl font-extrabold text-white"
             >
               <span class="text-solar-green-400">AyahDay.cc</span>
-              <span
-                class="mt-1 block text-base font-bold text-solar-blue-300"
-              >
+              <span class="mt-1 block text-base font-bold text-solar-blue-300">
                 Daily Quranic Verses
               </span>
             </h1>
@@ -168,14 +166,39 @@
           class="element-to-hide flex w-full flex-wrap items-center justify-between gap-3"
         >
           <div class="flex flex-wrap gap-2" dir="ltr" lang="en">
-            <button
-              type="button"
-              id="shareBtn"
-              class="btn-icon"
-              aria-label="Share"
-            >
-              <i class="fa-solid fa-share-nodes" aria-hidden="true"></i>
-            </button>
+            <span class="element-to-hide relative inline-flex">
+              <button
+                type="button"
+                id="shareBtn"
+                class="btn-icon-whatsapp"
+                aria-describedby="shareTooltip"
+                aria-label="Share on WhatsApp"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="size-4 shrink-0"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="#ffffff"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <!-- Lucide MessageCircle (ISC) - matches solar-helper ResultsSidebar -->
+                  <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                </svg>
+              </button>
+              <div
+                id="shareTooltip"
+                role="tooltip"
+                class="share-tooltip element-to-hide"
+              >
+                <span id="shareTooltipLabel">Share on WhatsApp</span>
+              </div>
+            </span>
             <button
               type="button"
               id="prevBtn"
@@ -258,8 +281,8 @@
         >
           <p class="mb-4">
             AyahDay is your gateway to exploring the profound spiritual wisdom
-            encapsulated within the Quran. Each interaction with the app –
-            whether a simple refresh or a click – reveals a unique Ayah,
+            encapsulated within the Quran. Each interaction with the app -
+            whether a simple refresh or a click - reveals a unique Ayah,
             complete with insightful commentary on its Surah. This app not only
             enriches your daily spiritual practice but also connects you to the
             timeless teachings of the Quran.
@@ -274,9 +297,9 @@
           <p class="mb-4">
             Designed for Muslims around the globe seeking a moment of peace and
             reflection in their day, AyahDay also extends its reach to anyone
-            interested in the teachings of Islam and the Quran. Share the
-            wisdom of these Quranic verses with friends and family
-            effortlessly, fostering a sense of unity and spiritual growth.
+            interested in the teachings of Islam and the Quran. Share the wisdom
+            of these Quranic verses with friends and family effortlessly,
+            fostering a sense of unity and spiritual growth.
           </p>
           <p class="mb-4">
             Whether you are deepening your existing knowledge or embarking on a

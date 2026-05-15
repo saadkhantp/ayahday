@@ -10,10 +10,14 @@ const API_CONFIG = {
   url: "https://api.alquran.cloud/v1/ayah",
 };
 
+const SHARE_TOOLTIP_MS = 3000;
+let shareTooltipHideTimer = null;
+
 document.addEventListener("DOMContentLoaded", async () => {
   await fetchAndDisplayAyah(currentAyahNumber);
   nextAyahData = await fetchAyah(getRandomAyahNumber());
   addEventListeners();
+  initShareTooltip();
   updateLanguageDisplay();
 });
 
@@ -90,6 +94,51 @@ function addEventListeners() {
   });
   document.addEventListener("touchstart", handleTouchStart, false);
   document.addEventListener("touchend", handleTouchEnd, false);
+}
+
+function getShareTooltipEls() {
+  return {
+    btn: document.getElementById("shareBtn"),
+    tip: document.getElementById("shareTooltip"),
+    label: document.getElementById("shareTooltipLabel"),
+  };
+}
+
+function clearShareTooltipTimer() {
+  if (shareTooltipHideTimer) {
+    clearTimeout(shareTooltipHideTimer);
+    shareTooltipHideTimer = null;
+  }
+}
+
+function closeShareTooltip() {
+  const { tip } = getShareTooltipEls();
+  clearShareTooltipTimer();
+  if (tip) tip.classList.remove("share-tooltip--open");
+}
+
+function openShareTooltip() {
+  const { tip } = getShareTooltipEls();
+  if (!tip) return;
+  clearShareTooltipTimer();
+  tip.classList.add("share-tooltip--open");
+  shareTooltipHideTimer = setTimeout(closeShareTooltip, SHARE_TOOLTIP_MS);
+}
+
+function initShareTooltip() {
+  const { btn } = getShareTooltipEls();
+  if (!btn) return;
+  btn.addEventListener("mouseenter", openShareTooltip);
+  btn.addEventListener("mouseleave", closeShareTooltip);
+  btn.addEventListener("focusin", openShareTooltip);
+  btn.addEventListener("focusout", closeShareTooltip);
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    const { tip } = getShareTooltipEls();
+    if (tip?.classList.contains("share-tooltip--open")) {
+      closeShareTooltip();
+    }
+  });
 }
 
 function handleTouchStart(e) {
@@ -180,6 +229,10 @@ function updateLanguageDisplay() {
   const verseDisplay = document.getElementById("verseDisplay");
   const langToggleBtn = document.getElementById("langToggleBtn");
   const tagline = document.getElementById("tagline");
+  const { btn: shareBtn, tip: shareTooltip, label: shareTooltipLabel } =
+    getShareTooltipEls();
+  closeShareTooltip();
+
   if (currentLang === "ur.maududi") {
     verseDisplay.classList.add("urdu-style");
     langToggleBtn.className = "element-to-hide btn-header-lang";
@@ -188,8 +241,18 @@ function updateLanguageDisplay() {
     document.documentElement.dir = "rtl";
     if (tagline) {
       tagline.className =
-        "element-to-hide mt-0.5 font-urduHeader text-sm leading-8 text-solar-slate-300";
+        "element-to-hide mt-0.5 font-urduHeader text-sm font-medium leading-8 text-solar-gold/95";
       tagline.textContent = "انگریزی اور اردو میں روزانہ کی آیات";
+    }
+    if (shareTooltipLabel) {
+      shareTooltipLabel.textContent = "واٹس ایپ پر شیئر کریں";
+    }
+    if (shareBtn) {
+      shareBtn.setAttribute("aria-label", "واٹس ایپ پر شیئر کریں");
+    }
+    if (shareTooltip) {
+      shareTooltip.classList.add("font-urduUi", "leading-7");
+      shareTooltip.setAttribute("dir", "rtl");
     }
   } else {
     verseDisplay.classList.remove("urdu-style");
@@ -199,8 +262,18 @@ function updateLanguageDisplay() {
     document.documentElement.dir = "ltr";
     if (tagline) {
       tagline.className =
-        "element-to-hide mt-0.5 text-xs text-solar-slate-300";
+        "element-to-hide mt-0.5 text-xs font-medium text-solar-gold/95";
       tagline.textContent = "Daily Quranic verses in English & Urdu";
+    }
+    if (shareTooltipLabel) {
+      shareTooltipLabel.textContent = "Share on WhatsApp";
+    }
+    if (shareBtn) {
+      shareBtn.setAttribute("aria-label", "Share on WhatsApp");
+    }
+    if (shareTooltip) {
+      shareTooltip.classList.remove("font-urduUi", "leading-7");
+      shareTooltip.removeAttribute("dir");
     }
   }
 }

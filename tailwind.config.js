@@ -4,7 +4,12 @@ const tailwindcssAnimate = require("tailwindcss-animate");
 
 module.exports = {
   darkMode: ["class"],
-  content: ["./index.html", "./faq/index.html", "./ur/faq/index.html", "./*.js"],
+  content: [
+    "./index.html",
+    "./faq/index.html",
+    "./ur/faq/index.html",
+    "./*.js",
+  ],
   theme: {
     extend: {
       fontFamily: {
@@ -83,6 +88,7 @@ module.exports = {
             800: "#1e293b",
             900: "#0f172a",
           },
+          gold: "#FFB834",
         },
       },
       borderRadius: {
