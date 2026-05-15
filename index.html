@@ -1,6 +1,171 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-PK" class="dark">
   <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>AyahDay — Daily Quran Verses in English &amp; Urdu</title>
+    <meta
+      name="description"
+      content="Free web app for daily Quranic verses (ayat) in English (Muhammad Asad) and Urdu (Maududi). Reflect, swipe, and share via WhatsApp. Powered by Al Quran Cloud."
+    />
+    <meta
+      name="keywords"
+      content="Quran verses, daily ayah, Quranic reflection, English Quran translation, Urdu Quran, Muhammad Asad, Maududi, Al Quran Cloud, Islamic app, spiritual app, ayah sharing"
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://www.ayahday.cc/" />
+    <link rel="alternate" hreflang="en-PK" href="https://www.ayahday.cc/" />
+    <link rel="alternate" hreflang="ur-PK" href="https://www.ayahday.cc/" />
+    <link rel="alternate" hreflang="x-default" href="https://www.ayahday.cc/" />
+    <link rel="icon" href="./ayah-day-logo-512.png" type="image/png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./dist/app.css" />
+    <link rel="manifest" href="./manifest.json" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="AyahDay" />
+    <meta property="og:url" content="https://www.ayahday.cc/" />
+    <meta
+      property="og:title"
+      content="AyahDay — Daily Quran Verses in English &amp; Urdu"
+    />
+    <meta
+      property="og:description"
+      content="Free web app for daily Quranic verses in English and Urdu. Reflect, navigate, and share. Powered by Al Quran Cloud."
+    />
+    <meta
+      property="og:image"
+      content="https://www.ayahday.cc/og-ayahday.jpg"
+    />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="AyahDay — Daily Quran Verses in English &amp; Urdu"
+    />
+    <meta
+      name="twitter:description"
+      content="Free web app for daily Quranic verses in English and Urdu. Reflect, navigate, and share."
+    />
+    <meta name="twitter:image" content="https://www.ayahday.cc/og-ayahday.jpg" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="apple-mobile-web-app-title" content="AyahDay" />
+    <meta name="theme-color" content="#3399ff" />
+    <link rel="apple-touch-icon" href="./ayah-day-logo-192.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "AyahDay",
+        "applicationCategory": "LifestyleApplication",
+        "operatingSystem": "Web",
+        "url": "https://www.ayahday.cc/",
+        "description": "Daily Quranic verses (ayah) in English and Urdu for reflection and sharing. Free web app using Al Quran Cloud.",
+        "featureList": "Daily ayah reflection, English and Urdu Quran translations, WhatsApp sharing, Al Quran Cloud API",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "PKR"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "AyahDay",
+          "url": "https://www.ayahday.cc/"
+        }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "@id": "https://www.ayahday.cc/#faq",
+        "url": "https://www.ayahday.cc/",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is AyahDay?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "AyahDay is a free web app for daily Quranic reflection. It shows verses (ayat) with surah context in the translation language you choose."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Which translations does AyahDay use?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "English uses Muhammad Asad (en.asad). Urdu uses Abul Ala Maududi (ur.maududi). Text is provided via Al Quran Cloud."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is AyahDay free? Do I need an account?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "AyahDay is free and does not require an account."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Where does the verse text come from?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Verses are loaded from the public Al Quran Cloud API using standard Quranic editions."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How do I share a verse?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Tap the share button to open WhatsApp with the current verse so you can send it to others."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I see a verse I viewed before?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Use the back control after moving forward. The app keeps a short history during your visit."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does AyahDay show Arabic script for every verse?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The main reading view emphasizes translation. Surah names include Arabic; the body text follows your selected translation for readability."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is AyahDay religious advice or fiqh?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. AyahDay is for reflection only. For rulings or deep tafsir, consult qualified scholars and authoritative sources."
+            }
+          }
+        ]
+      }
+    </script>
+
     <!-- Google tag (gtag.js) -->
     <script
       async
@@ -12,199 +177,285 @@
         dataLayer.push(arguments);
       }
       gtag("js", new Date());
-
       gtag("config", "G-72MT997T35");
     </script>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="content-type" content="text/html; charset=UTF8" />
-    <link rel="icon" href="./ayah-day-logo-512.png" type="image/png" />
-    <title>AyahDay - Daily Quran Verses in English and Urdu</title>
-    <meta
-      name="description"
-      content="Discover the spiritual wisdom of the Quran with AyahDay. Featuring daily Quranic verses (Ayat) in English and Urdu, perfect for reflection and sharing with friends and family."
-    />
-    <meta
-      name="keywords"
-      content="Quran, Ayah, Ayat, Quran Verses, Daily Ayah, Urdu Quran, English Quran, Islamic App, Quranic Wisdom, Muslims, Life, Word of God, Ramadan, Ramzan, Muslim app, islamic app, wisdom, word of god, ramzan, ramzan 2024, ramadan, ramadan kareem, blessings, peace, spirituality, spiritual, muslim, muslims, islam, islamic"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
-      rel="stylesheet"
-    />
-    <link
-      rel="preload"
-      href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@500&display=swap"
-      as="font"
-      type="font/woff2"
-      crossorigin="anonymous"
-    />
-
-    <link
-      rel="preload"
-      href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;600;800&display=swap"
-      as="font"
-      type="font/woff2"
-      crossorigin="anonymous"
-    />
-
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="manifest" href="./manifest.json" />
-
-    <meta
-      property="og:title"
-      content="AyahDay - Daily Quran Verses in English and Urdu"
-    />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://www.ayahday.cc" />
-    <meta property="og:image" content="https://www.ayahday.cc/og-ayahday.jpg" />
-    <meta
-      property="og:description"
-      content="Discover the spiritual wisdom of the Quran with AyahDay. Featuring daily Quranic verses (Ayat) in English and Urdu, perfect for reflection and sharing."
-    />
-    <meta property="og:site_name" content="AyahDay" />
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta
-      name="twitter:title"
-      content="AyahDay - Daily Quran Verses in English and Urdu"
-    />
-    <meta
-      name="twitter:description"
-      content="Discover the spiritual wisdom of the Quran with AyahDay. Featuring daily Quranic verses (Ayat) in English and Urdu, perfect for reflection and sharing."
-    />
-    <meta
-      name="twitter:image"
-      content="https://www.ayahday.cc/og-ayahday.jpg"
-    />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-    <meta name="apple-mobile-web-app-title" content="AyahDay" />
-    <link rel="apple-touch-icon" href="./ayah-day-logo-192.png" />
 
     <script
       src="https://kit.fontawesome.com/65534763ba.js"
       crossorigin="anonymous"
     ></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.2/html2canvas.min.js"></script>
   </head>
-  <body>
-    <div class="container my-4">
-      <div class="header">
-        <h1 class="element-to-hide" id="gradientLogo">AyahDay</h1>
-        <h1 id="screenshotLogo" style="display: none">
-          AyahDay.cc <span>Daily Quranic Verses</span>
-        </h1>
-
-        <button
-          class="btn btn-link btn-about element-to-hide"
-          data-bs-toggle="modal"
-          data-bs-target="#descriptionModal"
-        >
-          About
-        </button>
-      </div>
-
-      <div class="content">
-        <div id="datetime"></div>
-        <div id="verseDisplay" class="card card-body mb-3"></div>
-        <div class="btn-container element-to-hide">
-          <div class="left">
-            <!-- <button id="saveImageBtn" class="btn btn-custom white">
-              <i class="fa-solid fa-camera"></i>
-            </button> -->
-            <button id="shareBtn" class="btn btn-custom white">
-              <i class="fa-solid fa-share-nodes"></i>
-            </button>
-            <button id="prevBtn" class="btn btn-custom white">
-              <i class="fa-solid fa-caret-left"></i>
-            </button>
-            <button id="nextBtn" class="btn btn-custom white">
-              <i class="fa-solid fa-caret-right"></i>
-            </button>
+  <body
+    class="min-h-screen bg-[radial-gradient(circle_at_top,_#0f172a,_#020617_60%)] p-4 md:p-8"
+  >
+    <div class="theme mx-auto w-full max-w-2xl">
+      <header class="mb-8">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <h1
+              class="element-to-hide font-logo text-2xl tracking-tight text-gradient-solar sm:text-3xl"
+              id="gradientLogo"
+            >
+              AyahDay
+            </h1>
+            <p
+              class="element-to-hide mt-0.5 text-xs text-solar-slate-300"
+              id="tagline"
+            >
+              Daily Quranic verses in English &amp; Urdu
+            </p>
+            <h1
+              id="screenshotLogo"
+              class="hidden font-logo text-2xl font-extrabold text-white"
+            >
+              <span class="text-solar-green-400">AyahDay.cc</span>
+              <span
+                class="mt-1 block text-base font-bold text-solar-blue-300"
+              >
+                Daily Quranic Verses
+              </span>
+            </h1>
           </div>
-          <button id="langToggleBtn" class="btn btn-primary">اُردُو</button>
-        </div>
-      </div>
-
-      <footer class="footer text-light">
-        <p id="swipeInstruction" class="swipe-instruction element-to-hide">
-          <span class="material-symbols-outlined"> swipe </span> Swipe Left or
-          Right
-        </p>
-        <p style="position: relative; z-index: 99">&copy; 2024 AyahDay</p>
-      </footer>
-    </div>
-    <div
-      class="modal fade"
-      id="descriptionModal"
-      tabindex="-1"
-      aria-labelledby="descriptionModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog modal-fullscreen modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h4 class="modal-title" id="descriptionModalLabel">
-              <strong>About AyahDay</strong>
-            </h4>
+          <div class="flex shrink-0 items-start justify-end">
             <button
               type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <p>
-              AyahDay is your gateway to exploring the profound spiritual wisdom
-              encapsulated within the Quran. Each interaction with the app –
-              whether a simple refresh or a click – reveals a unique Ayah,
-              complete with insightful commentary on its Surah. This app not
-              only enriches your daily spiritual practice but also connects you
-              to the timeless teachings of the Quran.
-            </p>
-
-            <p>
-              Immerse yourself in the enlightening verses (Ayat) from various
-              chapters of the Quran, presented in both English and Urdu
-              translations. Our carefully curated content provides a deep
-              understanding of the context and meaning of each Ayah, making it
-              accessible and relevant to our modern lives.
-            </p>
-
-            <p>
-              Designed for Muslims around the globe seeking a moment of peace
-              and reflection in their day, AyahDay also extends its reach to
-              anyone interested in the teachings of Islam and the Quran. Share
-              the wisdom of these Quranic verses with friends and family
-              effortlessly, fostering a sense of unity and spiritual growth.
-            </p>
-
-            <p>
-              Whether you are deepening your existing knowledge or embarking on
-              a new journey of discovery, AyahDay serves as a constant companion
-              in your spiritual journey, illuminating the path with the divine
-              words of the Quran.
-            </p>
-
-            <p>
-              <strong
-                >This app is dedicated to my parents, the roots of my life's
-                tree.</strong
-              >
-            </p>
+              id="langToggleBtn"
+              class="element-to-hide btn-header-lang"
+              aria-label="Toggle language"
+            >
+              <span class="lang-label-ur">اُردُو</span>
+            </button>
           </div>
         </div>
-      </div>
+      </header>
+
+      <main>
+        <div
+          id="datetime"
+          class="pb-1.5 text-sm font-medium text-solar-slate-400"
+        ></div>
+        <div
+          id="verseDisplay"
+          class="glass-card mb-6 flex flex-col justify-center rounded-xl p-4 text-card-foreground ring-1 ring-solar-blue-500/25 md:p-5"
+        ></div>
+        <div
+          class="element-to-hide flex w-full flex-wrap items-center justify-between gap-3"
+        >
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="button"
+              id="shareBtn"
+              class="btn-icon"
+              aria-label="Share"
+            >
+              <i class="fa-solid fa-share-nodes" aria-hidden="true"></i>
+            </button>
+            <button
+              type="button"
+              id="prevBtn"
+              class="btn-icon"
+              aria-label="Previous verse"
+            >
+              <i class="fa-solid fa-caret-left" aria-hidden="true"></i>
+            </button>
+            <button
+              type="button"
+              id="nextBtn"
+              class="btn-icon"
+              aria-label="Next verse"
+            >
+              <i class="fa-solid fa-caret-right" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <section
+        id="faq"
+        class="mt-12 scroll-mt-6"
+        aria-labelledby="faq-heading"
+      >
+        <h2
+          id="faq-heading"
+          class="mb-4 text-lg font-bold tracking-tight text-foreground"
+        >
+          Frequently asked questions
+        </h2>
+        <dl class="space-y-5 text-sm text-muted-foreground">
+          <div>
+            <dt class="font-semibold text-solar-slate-200">
+              What is AyahDay?
+            </dt>
+            <dd class="mt-1.5 leading-relaxed">
+              AyahDay is a free web app for daily Quranic reflection. It shows
+              verses (ayat) with surah context in the translation language you
+              choose.
+            </dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-solar-slate-200">
+              Which translations does AyahDay use?
+            </dt>
+            <dd class="mt-1.5 leading-relaxed">
+              English uses Muhammad Asad (en.asad). Urdu uses Abul Ala
+              Maududi (ur.maududi). Text is provided via Al Quran Cloud.
+            </dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-solar-slate-200">
+              Is AyahDay free? Do I need an account?
+            </dt>
+            <dd class="mt-1.5 leading-relaxed">
+              AyahDay is free and does not require an account.
+            </dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-solar-slate-200">
+              Where does the verse text come from?
+            </dt>
+            <dd class="mt-1.5 leading-relaxed">
+              Verses are loaded from the public Al Quran Cloud API using
+              standard Quranic editions.
+            </dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-solar-slate-200">
+              How do I share a verse?
+            </dt>
+            <dd class="mt-1.5 leading-relaxed">
+              Tap the share button to open WhatsApp with the current verse so
+              you can send it to others.
+            </dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-solar-slate-200">
+              Can I see a verse I viewed before?
+            </dt>
+            <dd class="mt-1.5 leading-relaxed">
+              Use the back control after moving forward. The app keeps a short
+              history during your visit.
+            </dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-solar-slate-200">
+              Does AyahDay show Arabic script for every verse?
+            </dt>
+            <dd class="mt-1.5 leading-relaxed">
+              The main reading view emphasizes translation. Surah names include
+              Arabic; the body text follows your selected translation for
+              readability.
+            </dd>
+          </div>
+          <div>
+            <dt class="font-semibold text-solar-slate-200">
+              Is AyahDay religious advice or fiqh?
+            </dt>
+            <dd class="mt-1.5 leading-relaxed">
+              No. AyahDay is for reflection only. For rulings or deep tafsir,
+              consult qualified scholars and authoritative sources.
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <footer
+        class="mt-10 w-full border-t border-solar-blue-500/15 pt-4 text-left text-xs text-solar-slate-400/80"
+      >
+        <p
+          id="swipeInstruction"
+          class="element-to-hide mb-3 flex items-center gap-1.5 text-sm text-solar-slate-400/70"
+        >
+          <span class="material-symbols-outlined text-base" aria-hidden="true"
+            >swipe</span
+          >
+          Swipe left or right
+        </p>
+        <div
+          class="element-to-hide flex flex-wrap items-center gap-2 text-slate-300"
+        >
+          <button
+            type="button"
+            id="aboutBtn"
+            class="footer-link"
+            aria-label="About AyahDay"
+          >
+            About
+          </button>
+        </div>
+        <p class="mt-3 text-solar-slate-400/80">
+          © <span id="footerYear"></span> AyahDay
+        </p>
+      </footer>
     </div>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <dialog
+      id="descriptionModal"
+      class="app-dialog"
+      aria-labelledby="descriptionModalLabel"
+    >
+      <div class="flex max-h-[min(90vh,48rem)] flex-col">
+        <div
+          class="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 px-6 py-4"
+        >
+          <h2
+            class="pr-4 text-lg font-bold text-foreground"
+            id="descriptionModalLabel"
+          >
+            About AyahDay
+          </h2>
+          <form method="dialog">
+            <button
+              type="submit"
+              class="btn-icon size-9 text-lg leading-none"
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </form>
+        </div>
+        <div
+          class="overflow-y-auto px-6 py-4 text-base leading-relaxed text-muted-foreground"
+        >
+          <p class="mb-4">
+            AyahDay is your gateway to exploring the profound spiritual wisdom
+            encapsulated within the Quran. Each interaction with the app –
+            whether a simple refresh or a click – reveals a unique Ayah,
+            complete with insightful commentary on its Surah. This app not only
+            enriches your daily spiritual practice but also connects you to the
+            timeless teachings of the Quran.
+          </p>
+          <p class="mb-4">
+            Immerse yourself in the enlightening verses (Ayat) from various
+            chapters of the Quran, presented in both English and Urdu
+            translations. Our carefully curated content provides a deep
+            understanding of the context and meaning of each Ayah, making it
+            accessible and relevant to our modern lives.
+          </p>
+          <p class="mb-4">
+            Designed for Muslims around the globe seeking a moment of peace and
+            reflection in their day, AyahDay also extends its reach to anyone
+            interested in the teachings of Islam and the Quran. Share the
+            wisdom of these Quranic verses with friends and family
+            effortlessly, fostering a sense of unity and spiritual growth.
+          </p>
+          <p class="mb-4">
+            Whether you are deepening your existing knowledge or embarking on a
+            new journey of discovery, AyahDay serves as a constant companion in
+            your spiritual journey, illuminating the path with the divine words
+            of the Quran.
+          </p>
+          <p class="font-semibold text-foreground">
+            This app is dedicated to my parents, the roots of my life's tree.
+          </p>
+        </div>
+      </div>
+    </dialog>
+
+    <script>
+      document.getElementById("footerYear").textContent =
+        new Date().getFullYear();
+    </script>
     <script src="script.js"></script>
   </body>
 </html>

@@ -1,0 +1,36 @@
+/* Lifted from solar-helper/src/index.css — base-nova + cssVariables */
+:root {
+  --background: 224 39% 11%;
+  --foreground: 210 40% 98%;
+  --card: 225 34% 15%;
+  --card-foreground: 210 40% 98%;
+  --popover: 225 34% 15%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 214 100% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 224 24% 20%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 224 26% 18%;
+  --muted-foreground: 215 20% 75%;
+  --accent: 216 42% 22%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: 0 0% 98%;
+  --border: 220 32% 30%;
+  --input: 220 26% 30%;
+  --ring: 214 100% 60%;
+  --radius: 0.625rem;
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}

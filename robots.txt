@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Specifically allow the Facebook/WhatsApp scraper
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Facebot
+Allow: /
+
+Sitemap: https://www.ayahday.cc/sitemap.xml

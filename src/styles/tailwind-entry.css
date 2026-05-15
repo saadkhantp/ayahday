@@ -1,0 +1,134 @@
+/* Same as solar-helper/src/index.css — Urdu fonts via fontsource (not Google Fonts CDN) */
+@import "@fontsource/noto-sans-arabic/400.css";
+@import "@fontsource/noto-sans-arabic/700.css";
+@import "@fontsource/noto-nastaliq-urdu/400.css";
+@import "@fontsource/noto-nastaliq-urdu/700.css";
+
+@import "./tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans antialiased;
+    font-family: "Mulish", sans-serif;
+  }
+
+  .theme {
+    --font-heading: var(--font-sans);
+    --font-sans: "Mulish", sans-serif;
+  }
+
+  body {
+    @apply text-foreground antialiased;
+    font-family: "Mulish", sans-serif;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply border border-solar-blue-500/20 bg-white/5 shadow-[0_10px_30px_rgba(0,0,0,0.25)] backdrop-blur-md;
+  }
+
+  .font-logo {
+    font-family: "Mulish", sans-serif;
+  }
+
+  .text-shadow-sm {
+    text-shadow: 2px 2px 6px rgb(0 0 0 / 0.3);
+  }
+
+  .disabled {
+    @apply pointer-events-none opacity-40;
+  }
+
+  .swipe-left {
+    @apply animate-swipe-left;
+  }
+
+  .swipe-right {
+    @apply animate-swipe-right;
+  }
+
+  .fade-in {
+    @apply animate-fade-in;
+  }
+}
+
+@layer components {
+  .footer-link {
+    @apply cursor-pointer border-0 bg-transparent text-xs text-slate-300 underline underline-offset-2 transition hover:text-cyan-200;
+  }
+
+  .btn-header-lang {
+    @apply inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold text-cyan-100 transition hover:bg-white/10;
+  }
+
+  .btn-header-lang .lang-label-ur {
+    @apply font-urduUi leading-7;
+  }
+
+  /* shadcn base-nova outline icon button feel */
+  .btn-icon {
+    @apply inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-foreground shadow-none transition-all outline-none hover:-translate-y-0.5 hover:border-solar-blue-400/40 hover:bg-muted focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 dark:border-input dark:bg-input/30 dark:hover:bg-input/50;
+  }
+
+  .text-gradient-solar {
+    @apply bg-gradient-to-r from-solar-green-400 to-solar-blue-400 bg-clip-text font-extrabold text-transparent;
+  }
+
+  #verseDisplay .verse,
+  #verseDisplay .surah {
+    @apply relative z-[9] text-left text-shadow-sm;
+  }
+
+  #verseDisplay .surah::before {
+    content: "";
+    @apply my-6 block h-px w-[100px] bg-gradient-to-r from-solar-green-400/60 to-solar-blue-400/60;
+  }
+
+  #verseDisplay .verse {
+    @apply mb-0 text-2xl font-bold leading-snug text-solar-slate-50 first-letter:uppercase;
+  }
+
+  #verseDisplay.urdu-style {
+    @apply text-right;
+    direction: rtl;
+  }
+
+  #verseDisplay.urdu-style .verse {
+    @apply font-urduHeader text-xl leading-10 text-solar-slate-50 sm:text-2xl;
+  }
+
+  #verseDisplay.urdu-style .verse:first-letter {
+    text-transform: none;
+  }
+
+  #verseDisplay.urdu-style .verse,
+  #verseDisplay.urdu-style .surah {
+    @apply text-right;
+    direction: rtl;
+  }
+
+  #verseDisplay .surah {
+    @apply text-solar-slate-300;
+  }
+
+  #verseDisplay .error {
+    @apply text-destructive;
+  }
+
+  .app-dialog {
+    @apply w-[min(100vw-1.5rem,42rem)] max-h-[min(90vh,100%)] overflow-y-auto rounded-2xl border border-white/15 bg-card p-0 text-card-foreground shadow-[0_18px_50px_rgba(0,0,0,0.45)];
+  }
+
+  .app-dialog::backdrop {
+    @apply bg-slate-950/80 backdrop-blur-sm;
+  }
+}

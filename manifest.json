@@ -13,9 +13,10 @@
       "type": "image/png"
     }
   ],
-  "start_url": "/",
+  "start_url": "https://www.ayahday.cc/",
+  "scope": "https://www.ayahday.cc/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#001001",
-  "theme_color": "#CB9B69"
+  "background_color": "#020617",
+  "theme_color": "#3399ff"
 }

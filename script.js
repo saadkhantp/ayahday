@@ -82,6 +82,12 @@ function addEventListeners() {
   document
     .getElementById("langToggleBtn")
     .addEventListener("click", toggleLanguage);
+  document.getElementById("aboutBtn").addEventListener("click", () => {
+    document.getElementById("descriptionModal").showModal();
+  });
+  document.getElementById("descriptionModal").addEventListener("click", (e) => {
+    if (e.target === e.currentTarget) e.currentTarget.close();
+  });
   document.addEventListener("touchstart", handleTouchStart, false);
   document.addEventListener("touchend", handleTouchEnd, false);
 }
@@ -153,7 +159,7 @@ function shareOnWhatsApp() {
   const verseText = encodeURIComponent(
     document.getElementById("verseDisplay").innerText
   );
-  const appUrl = "https://ayahday.cc";
+  const appUrl = "https://www.ayahday.cc/";
   const whatsappMessage = `${verseText}%0A%0AExplore more at ${appUrl}`;
   const whatsappUrl = `https://wa.me/?text=${whatsappMessage}`;
   window.open(whatsappUrl, "_blank");
@@ -173,13 +179,29 @@ function toggleLanguage() {
 function updateLanguageDisplay() {
   const verseDisplay = document.getElementById("verseDisplay");
   const langToggleBtn = document.getElementById("langToggleBtn");
+  const tagline = document.getElementById("tagline");
   if (currentLang === "ur.maududi") {
     verseDisplay.classList.add("urdu-style");
+    langToggleBtn.className = "element-to-hide btn-header-lang";
     langToggleBtn.innerHTML = "English";
+    document.documentElement.lang = "ur-PK";
+    document.documentElement.dir = "rtl";
+    if (tagline) {
+      tagline.className =
+        "element-to-hide mt-0.5 font-urduHeader text-sm leading-8 text-solar-slate-300";
+      tagline.textContent = "انگریزی اور اردو میں روزانہ کی آیات";
+    }
   } else {
     verseDisplay.classList.remove("urdu-style");
-    langToggleBtn.innerHTML =
-      "<span style='font-family: Noto Nastaliq Urdu;'>اردو</span>";
+    langToggleBtn.className = "element-to-hide btn-header-lang";
+    langToggleBtn.innerHTML = '<span class="lang-label-ur">اُردُو</span>';
+    document.documentElement.lang = "en-PK";
+    document.documentElement.dir = "ltr";
+    if (tagline) {
+      tagline.className =
+        "element-to-hide mt-0.5 text-xs text-solar-slate-300";
+      tagline.textContent = "Daily Quranic verses in English & Urdu";
+    }
   }
 }
 
@@ -213,38 +235,42 @@ function updatePrevButtonState() {
   }
 }
 
-document.getElementById("saveImageBtn").addEventListener("click", function () {
-  const elementsToHide = document.querySelectorAll(".element-to-hide");
-  elementsToHide.forEach((element) => {
-    element.style.display = "none";
-  });
-
-  document.getElementById("gradientLogo").style.display = "none";
-  document.getElementById("screenshotLogo").style.display = "block";
-
-  // Capture the <html> element instead of <body>
-  html2canvas(document.documentElement, {
-    backgroundColor: "#29292d", // Ensuring the background color is set
-    scale: 1, // You can adjust the scale for better resolution
-    windowWidth: document.documentElement.scrollWidth,
-    windowHeight: document.documentElement.scrollHeight,
-  }).then(function (canvas) {
+const saveImageBtn = document.getElementById("saveImageBtn");
+if (saveImageBtn) {
+  saveImageBtn.addEventListener("click", function () {
+    const elementsToHide = document.querySelectorAll(".element-to-hide");
     elementsToHide.forEach((element) => {
-      element.style.display = "flex";
+      element.style.display = "none";
     });
 
-    document.getElementById("gradientLogo").style.display = "block";
-    document.getElementById("screenshotLogo").style.display = "none";
+    document.getElementById("gradientLogo").style.display = "none";
+    document.getElementById("screenshotLogo").classList.remove("hidden");
+    document.getElementById("screenshotLogo").style.display = "block";
 
-    const timestamp = new Date().toISOString().replace(/[:.-]/g, "");
-    const fileName = `ayah-${currentAyahNumber}-${timestamp}.png`;
+    html2canvas(document.documentElement, {
+      backgroundColor: "#020617",
+      scale: 1,
+      windowWidth: document.documentElement.scrollWidth,
+      windowHeight: document.documentElement.scrollHeight,
+    }).then(function (canvas) {
+      elementsToHide.forEach((element) => {
+        element.style.display = "";
+      });
 
-    var link = document.createElement("a");
-    link.download = fileName;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
+      document.getElementById("gradientLogo").style.display = "";
+      document.getElementById("screenshotLogo").style.display = "none";
+      document.getElementById("screenshotLogo").classList.add("hidden");
+
+      const timestamp = new Date().toISOString().replace(/[:.-]/g, "");
+      const fileName = `ayah-${currentAyahNumber}-${timestamp}.png`;
+
+      var link = document.createElement("a");
+      link.download = fileName;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    });
   });
-});
+}
 
 function updateDateTime() {
   const date = new Date();
