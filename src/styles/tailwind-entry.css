@@ -63,7 +63,7 @@
 
 @layer components {
   .footer-link {
-    @apply cursor-pointer border-0 bg-transparent text-xs text-slate-300 underline underline-offset-2 transition hover:text-cyan-200;
+    @apply cursor-pointer border-0 bg-transparent text-sm text-slate-300 underline underline-offset-2 transition hover:text-cyan-200;
   }
 
   .btn-header-lang {
