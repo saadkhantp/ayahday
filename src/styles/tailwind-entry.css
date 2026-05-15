@@ -70,7 +70,7 @@
   }
 
   .btn-header-lang .lang-label-ur {
-    @apply font-urduUi leading-7;
+    @apply font-urduHeader font-normal leading-8;
   }
 
   /* shadcn base-nova outline icon button feel */
