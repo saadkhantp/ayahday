@@ -83,9 +83,11 @@
     @apply inline-flex size-10 shrink-0 items-center justify-center rounded-lg border border-transparent bg-[#075E54] text-white shadow-none transition-all outline-none hover:-translate-y-0.5 hover:bg-[#0d8073] hover:text-white focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 active:translate-y-px active:bg-[#054942] disabled:pointer-events-none disabled:opacity-50;
   }
 
-  /** shadcn TooltipContent-like (vanilla; no Radix) */
+  /** shadcn TooltipContent-like - viewport-fixed to avoid clipping (LTR/RTL) */
   .share-tooltip {
-    @apply pointer-events-none invisible absolute bottom-full left-1/2 z-50 mb-2 w-max max-w-[min(16rem,calc(100vw-2rem))] -translate-x-1/2 rounded-md border border-border bg-popover px-3 py-1.5 text-sm text-popover-foreground opacity-0 shadow-md transition-opacity duration-200;
+    @apply pointer-events-none invisible fixed z-[100] w-max max-w-[min(16rem,calc(100vw-2rem))] rounded-md border border-border bg-popover px-3 py-1.5 text-sm text-popover-foreground opacity-0 shadow-md transition-opacity duration-200;
+    left: 0;
+    top: 0;
   }
 
   .share-tooltip.share-tooltip--open {

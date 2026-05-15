@@ -114,14 +114,46 @@ function clearShareTooltipTimer() {
 function closeShareTooltip() {
   const { tip } = getShareTooltipEls();
   clearShareTooltipTimer();
-  if (tip) tip.classList.remove("share-tooltip--open");
+  if (tip) {
+    tip.classList.remove("share-tooltip--open");
+    tip.style.left = "";
+    tip.style.top = "";
+  }
+}
+
+function positionShareTooltip() {
+  const { btn, tip } = getShareTooltipEls();
+  if (!btn || !tip || !tip.classList.contains("share-tooltip--open")) return;
+  const rect = btn.getBoundingClientRect();
+  const pad = 8;
+  const gap = 10;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const tw = tip.offsetWidth;
+  const th = tip.offsetHeight;
+  let top = rect.top - th - gap;
+  if (top < pad) {
+    top = rect.bottom + gap;
+  }
+  if (top + th > vh - pad) {
+    top = Math.max(pad, rect.top - th - gap);
+  }
+  if (top + th > vh - pad) {
+    top = Math.max(pad, vh - th - pad);
+  }
+  let left = rect.left + rect.width / 2 - tw / 2;
+  left = Math.max(pad, Math.min(left, vw - tw - pad));
+  tip.style.left = `${Math.round(left)}px`;
+  tip.style.top = `${Math.round(top)}px`;
 }
 
 function openShareTooltip() {
-  const { tip } = getShareTooltipEls();
-  if (!tip) return;
+  const { tip, btn } = getShareTooltipEls();
+  if (!tip || !btn) return;
   clearShareTooltipTimer();
   tip.classList.add("share-tooltip--open");
+  void tip.offsetHeight;
+  positionShareTooltip();
   shareTooltipHideTimer = setTimeout(closeShareTooltip, SHARE_TOOLTIP_MS);
 }
 
@@ -132,6 +164,18 @@ function initShareTooltip() {
   btn.addEventListener("mouseleave", closeShareTooltip);
   btn.addEventListener("focusin", openShareTooltip);
   btn.addEventListener("focusout", closeShareTooltip);
+  window.addEventListener("resize", () => {
+    const { tip } = getShareTooltipEls();
+    if (tip?.classList.contains("share-tooltip--open")) positionShareTooltip();
+  });
+  window.addEventListener(
+    "scroll",
+    () => {
+      const { tip } = getShareTooltipEls();
+      if (tip?.classList.contains("share-tooltip--open")) closeShareTooltip();
+    },
+    true,
+  );
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
     const { tip } = getShareTooltipEls();
