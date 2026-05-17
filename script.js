@@ -1,4 +1,16 @@
-let currentLang = localStorage.getItem("currentLang") || "en.asad";
+const DEFAULT_LANGUAGE = "en.asad";
+const LANGUAGE_STORAGE_KEY = "currentLang";
+const SUPPORTED_LANGUAGE_EDITIONS = ["en.asad", "ur.maududi", "ms.basmeih"];
+const LANGUAGE_LABELS = {
+  "en.asad": "English",
+  "ur.maududi": "Urdu",
+  "ms.basmeih": "Malay",
+};
+const WHATS_NEW_APP_VERSION = "1.0.0";
+const WHATS_NEW_RELEASE_ID = "malay-language";
+const WHATS_NEW_STORAGE_KEY = `ayahday-whats-new-dismissed-${WHATS_NEW_APP_VERSION}-${WHATS_NEW_RELEASE_ID}`;
+
+let currentLang = normalizeLanguage(localStorage.getItem(LANGUAGE_STORAGE_KEY));
 let currentAyahNumber = getRandomAyahNumber();
 let ayahHistory = [];
 let touchstartX = 0;
@@ -14,6 +26,8 @@ const SHARE_TOOLTIP_MS = 3000;
 let shareTooltipHideTimer = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
+  initLanguageSelect();
+  initWhatsNewNotice();
   await fetchAndDisplayAyah(currentAyahNumber);
   nextAyahData = await fetchAyah(getRandomAyahNumber());
   addEventListeners();
@@ -29,13 +43,11 @@ async function fetchAndDisplayAyah(ayahNumber) {
 async function fetchAyah(ayahNumber) {
   try {
     const arabicResponse = await fetch(
-      `${API_CONFIG.url}/${ayahNumber}/quran-uthmani`
+      `${API_CONFIG.url}/${ayahNumber}/quran-uthmani`,
     );
 
-    const translationEdition =
-      currentLang === "en.asad" ? "en.asad" : "ur.maududi";
     const translationResponse = await fetch(
-      `${API_CONFIG.url}/${ayahNumber}/${translationEdition}`
+      `${API_CONFIG.url}/${ayahNumber}/${currentLang}`,
     );
 
     if (!arabicResponse.ok || !translationResponse.ok)
@@ -83,17 +95,142 @@ function addEventListeners() {
   const prevBtn = document.getElementById("prevBtn");
   prevBtn.classList.add("disabled");
   prevBtn.addEventListener("click", fetchPrevVerse);
-  document
-    .getElementById("langToggleBtn")
-    .addEventListener("click", toggleLanguage);
-  document.getElementById("aboutBtn").addEventListener("click", () => {
-    document.getElementById("descriptionModal").showModal();
+  const languageTrigger = document.getElementById("language-trigger");
+  if (languageTrigger) {
+    languageTrigger.addEventListener("click", toggleLanguageMenu);
+  }
+  const languageOptions = document.querySelectorAll(".lang-option");
+  languageOptions.forEach((option) => {
+    option.addEventListener("click", () => {
+      handleLanguageChange(option.dataset.language);
+      closeLanguageMenu();
+    });
   });
-  document.getElementById("descriptionModal").addEventListener("click", (e) => {
-    if (e.target === e.currentTarget) e.currentTarget.close();
+  document.addEventListener("click", (event) => {
+    const languageMenu = document.getElementById("language-menu");
+    if (!languageMenu || languageMenu.contains(event.target)) return;
+    closeLanguageMenu();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeLanguageMenu();
   });
   document.addEventListener("touchstart", handleTouchStart, false);
   document.addEventListener("touchend", handleTouchEnd, false);
+}
+
+function normalizeLanguage(languageEdition) {
+  if (SUPPORTED_LANGUAGE_EDITIONS.includes(languageEdition)) {
+    return languageEdition;
+  }
+  return DEFAULT_LANGUAGE;
+}
+
+function initLanguageSelect() {
+  const languageMenu = document.getElementById("language-menu");
+  if (!languageMenu) return;
+
+  currentLang = normalizeLanguage(localStorage.getItem(LANGUAGE_STORAGE_KEY));
+  localStorage.setItem(LANGUAGE_STORAGE_KEY, currentLang);
+  syncLanguageMenuUI();
+}
+
+function getWhatsNewCopy() {
+  if (currentLang === "ur.maududi") {
+    return {
+      title: "نیا کیا ہے",
+      message:
+        "نیا: لینگویج مینیو میں ملے ترجمہ (ms.basmeih) شامل کر دیا گیا ہے۔",
+      close: "بند کریں",
+    };
+  }
+  if (currentLang === "ms.basmeih") {
+    return {
+      title: "Apa Baharu",
+      message:
+        "Baharu: Terjemahan Melayu (ms.basmeih) kini tersedia dalam menu bahasa.",
+      close: "Tutup",
+    };
+  }
+  return {
+    title: "What's New",
+    message: "New: Added Malay translation (ms.basmeih) in Language menu.",
+    close: "Close",
+  };
+}
+
+function initWhatsNewNotice() {
+  const whatsNewNotice = document.getElementById("whatsNewNotice");
+  const closeBtn = document.getElementById("closeWhatsNewBtn");
+  if (!whatsNewNotice || !closeBtn) return;
+
+  const isDismissed = localStorage.getItem(WHATS_NEW_STORAGE_KEY) === "1";
+  whatsNewNotice.hidden = isDismissed;
+  updateWhatsNewNoticeCopy();
+
+  closeBtn.addEventListener("click", () => {
+    localStorage.setItem(WHATS_NEW_STORAGE_KEY, "1");
+    whatsNewNotice.hidden = true;
+  });
+}
+
+function updateWhatsNewNoticeCopy() {
+  const whatsNewNotice = document.getElementById("whatsNewNotice");
+  const titleEl = document.getElementById("whatsNewTitle");
+  const messageEl = document.getElementById("whatsNewMessage");
+  const closeBtn = document.getElementById("closeWhatsNewBtn");
+  if (!whatsNewNotice || !titleEl || !messageEl || !closeBtn) return;
+
+  const copy = getWhatsNewCopy();
+  titleEl.textContent = copy.title;
+  messageEl.textContent = copy.message;
+  closeBtn.setAttribute("aria-label", copy.close);
+  closeBtn.setAttribute("title", copy.close);
+
+  if (currentLang === "ur.maududi") {
+    whatsNewNotice.classList.add("font-urduUi", "leading-8");
+    whatsNewNotice.setAttribute("dir", "rtl");
+  } else {
+    whatsNewNotice.classList.remove("font-urduUi", "leading-8");
+    whatsNewNotice.setAttribute("dir", "ltr");
+  }
+}
+
+function syncLanguageMenuUI() {
+  const triggerLabel = document.getElementById("language-trigger-label");
+  const normalizedLanguage = normalizeLanguage(currentLang);
+  if (triggerLabel) {
+    triggerLabel.textContent = LANGUAGE_LABELS[normalizedLanguage] || "English";
+  }
+  document.querySelectorAll(".lang-option").forEach((option) => {
+    const isActive = option.dataset.language === normalizedLanguage;
+    option.setAttribute("aria-checked", String(isActive));
+    option.dataset.active = String(isActive);
+  });
+}
+
+function toggleLanguageMenu() {
+  const languageMenu = document.getElementById("language-menu");
+  const menuContent = document.getElementById("language-menu-content");
+  const trigger = document.getElementById("language-trigger");
+  if (!languageMenu || !menuContent || !trigger) return;
+  const isOpen = languageMenu.dataset.open === "true";
+  if (isOpen) {
+    closeLanguageMenu();
+    return;
+  }
+  languageMenu.dataset.open = "true";
+  menuContent.hidden = false;
+  trigger.setAttribute("aria-expanded", "true");
+}
+
+function closeLanguageMenu() {
+  const languageMenu = document.getElementById("language-menu");
+  const menuContent = document.getElementById("language-menu-content");
+  const trigger = document.getElementById("language-trigger");
+  if (!languageMenu || !menuContent || !trigger) return;
+  languageMenu.dataset.open = "false";
+  menuContent.hidden = true;
+  trigger.setAttribute("aria-expanded", "false");
 }
 
 function getShareTooltipEls() {
@@ -232,7 +369,7 @@ function swipeLeft(verseDisplay) {
       verseDisplay.classList.remove("swipe-left");
       await fetchNewVerse();
     },
-    { once: true }
+    { once: true },
   );
 }
 
@@ -244,13 +381,13 @@ function swipeRight(verseDisplay) {
       verseDisplay.classList.remove("swipe-right");
       fetchPrevVerse();
     },
-    { once: true }
+    { once: true },
   );
 }
 
 function shareOnWhatsApp() {
   const verseText = encodeURIComponent(
-    document.getElementById("verseDisplay").innerText
+    document.getElementById("verseDisplay").innerText,
   );
   const appUrl = "https://www.ayahday.cc/";
   const whatsappMessage = `${verseText}%0A%0AExplore more at ${appUrl}`;
@@ -258,35 +395,39 @@ function shareOnWhatsApp() {
   window.open(whatsappUrl, "_blank");
 }
 
-function toggleLanguage() {
-  if (currentLang === "en.asad") {
-    currentLang = "ur.maududi";
-  } else {
-    currentLang = "en.asad";
-  }
-  localStorage.setItem("currentLang", currentLang);
+function handleLanguageChange(languageEdition) {
+  const selectedLanguage = normalizeLanguage(languageEdition);
+  if (selectedLanguage === currentLang) return;
+
+  currentLang = selectedLanguage;
+  localStorage.setItem(LANGUAGE_STORAGE_KEY, currentLang);
+  syncLanguageMenuUI();
   updateLanguageDisplay();
   fetchAndDisplayAyah(currentAyahNumber);
 }
 
 function updateLanguageDisplay() {
   const verseDisplay = document.getElementById("verseDisplay");
-  const langToggleBtn = document.getElementById("langToggleBtn");
   const tagline = document.getElementById("tagline");
-  const { btn: shareBtn, tip: shareTooltip, label: shareTooltipLabel } =
-    getShareTooltipEls();
+  const {
+    btn: shareBtn,
+    tip: shareTooltip,
+    label: shareTooltipLabel,
+  } = getShareTooltipEls();
   closeShareTooltip();
+  syncLanguageMenuUI();
+  const isUrdu = currentLang === "ur.maududi";
+  const isMalay = currentLang === "ms.basmeih";
 
-  if (currentLang === "ur.maududi") {
+  if (isUrdu) {
     verseDisplay.classList.add("urdu-style");
-    langToggleBtn.className = "element-to-hide btn-header-lang";
-    langToggleBtn.innerHTML = "English";
+    verseDisplay.setAttribute("dir", "rtl");
     document.documentElement.lang = "ur-PK";
     document.documentElement.dir = "rtl";
     if (tagline) {
       tagline.className =
         "element-to-hide mt-0.5 font-urduHeader text-sm font-medium leading-8 text-solar-gold/95";
-      tagline.textContent = "انگریزی اور اردو میں روزانہ کی آیات";
+      tagline.textContent = "انگریزی، اردو اور مالے میں روزانہ کی آیات";
     }
     if (shareTooltipLabel) {
       shareTooltipLabel.textContent = "واٹس ایپ پر شیئر کریں";
@@ -298,28 +439,30 @@ function updateLanguageDisplay() {
       shareTooltip.classList.add("font-urduUi", "leading-7");
       shareTooltip.setAttribute("dir", "rtl");
     }
-  } else {
-    verseDisplay.classList.remove("urdu-style");
-    langToggleBtn.className = "element-to-hide btn-header-lang";
-    langToggleBtn.innerHTML = '<span class="lang-label-ur">اُردُو</span>';
-    document.documentElement.lang = "en-PK";
-    document.documentElement.dir = "ltr";
-    if (tagline) {
-      tagline.className =
-        "element-to-hide mt-0.5 text-xs font-medium text-solar-gold/95";
-      tagline.textContent = "Daily Quranic verses in English & Urdu";
-    }
-    if (shareTooltipLabel) {
-      shareTooltipLabel.textContent = "Share on WhatsApp";
-    }
-    if (shareBtn) {
-      shareBtn.setAttribute("aria-label", "Share on WhatsApp");
-    }
-    if (shareTooltip) {
-      shareTooltip.classList.remove("font-urduUi", "leading-7");
-      shareTooltip.removeAttribute("dir");
-    }
+    updateWhatsNewNoticeCopy();
+    return;
   }
+
+  verseDisplay.classList.remove("urdu-style");
+  verseDisplay.setAttribute("dir", "ltr");
+  document.documentElement.lang = isMalay ? "ms-MY" : "en-PK";
+  document.documentElement.dir = "ltr";
+  if (tagline) {
+    tagline.className =
+      "element-to-hide mt-0.5 text-xs font-medium text-solar-gold/95";
+    tagline.textContent = "Daily Quranic verses in English, Urdu & Malay";
+  }
+  if (shareTooltipLabel) {
+    shareTooltipLabel.textContent = "Share on WhatsApp";
+  }
+  if (shareBtn) {
+    shareBtn.setAttribute("aria-label", "Share on WhatsApp");
+  }
+  if (shareTooltip) {
+    shareTooltip.classList.remove("font-urduUi", "leading-7");
+    shareTooltip.removeAttribute("dir");
+  }
+  updateWhatsNewNoticeCopy();
 }
 
 async function fetchNewVerse() {

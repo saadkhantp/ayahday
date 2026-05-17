@@ -6,19 +6,20 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>AyahDay - Daily Quran Verses in English &amp; Urdu</title>
+    <title>AyahDay - Daily Quran Verses in English, Urdu &amp; Malay</title>
     <meta
       name="description"
-      content="Free web app for daily Quranic verses (ayat) in English (Muhammad Asad) and Urdu (Maududi). Reflect, swipe, and share via WhatsApp. Powered by Al Quran Cloud."
+      content="Free web app for daily Quranic verses (ayat) in English (Muhammad Asad), Urdu (Maududi), and Malay (Basmeih). Reflect, swipe, and share via WhatsApp. Powered by Al Quran Cloud."
     />
     <meta
       name="keywords"
-      content="Quran verses, daily ayah, Quranic reflection, English Quran translation, Urdu Quran, Muhammad Asad, Maududi, Al Quran Cloud, Islamic app, spiritual app, ayah sharing"
+      content="Quran verses, daily ayah, Quranic reflection, English Quran translation, Urdu Quran, Malay Quran, Muhammad Asad, Maududi, Basmeih, Al Quran Cloud, Islamic app, spiritual app, ayah sharing"
     />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://www.ayahday.cc/" />
     <link rel="alternate" hreflang="en-PK" href="https://www.ayahday.cc/" />
     <link rel="alternate" hreflang="ur-PK" href="https://www.ayahday.cc/" />
+    <link rel="alternate" hreflang="ms-MY" href="https://www.ayahday.cc/" />
     <link rel="alternate" hreflang="x-default" href="https://www.ayahday.cc/" />
     <link rel="icon" href="./favicon.png" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -32,6 +33,113 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./dist/app.css" />
+    <style>
+      .lang-menu {
+        position: relative;
+      }
+
+      .lang-trigger {
+        min-width: 7rem;
+        height: 2.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        border-radius: 0.5rem;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: rgba(2, 6, 23, 0.65);
+        color: rgba(241, 245, 249, 0.95);
+        padding: 0 0.65rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        line-height: 1;
+        backdrop-filter: blur(10px);
+        transition:
+          border-color 0.2s ease,
+          box-shadow 0.2s ease,
+          background-color 0.2s ease;
+      }
+
+      .lang-trigger:hover {
+        border-color: rgba(148, 163, 184, 0.55);
+        background: rgba(2, 6, 23, 0.78);
+      }
+
+      .lang-trigger:focus-visible {
+        outline: none;
+        border-color: rgba(59, 130, 246, 0.8);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+      }
+
+      .lang-chevron {
+        width: 0.9rem;
+        height: 0.9rem;
+        opacity: 0.78;
+        transition: transform 0.18s ease;
+      }
+
+      .lang-menu[data-open="true"] .lang-chevron {
+        transform: rotate(180deg);
+      }
+
+      .lang-content {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 0.5rem);
+        min-width: 100%;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        background: rgba(2, 6, 23, 0.94);
+        box-shadow: 0 12px 36px rgba(2, 6, 23, 0.45);
+        padding: 0.3rem;
+        z-index: 40;
+      }
+
+      .lang-content[hidden] {
+        display: none;
+      }
+
+      .lang-option {
+        width: 100%;
+        border: 0;
+        border-radius: 0.55rem;
+        text-align: left;
+        background: transparent;
+        color: rgba(226, 232, 240, 0.95);
+        padding: 0.48rem 0.55rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        line-height: 1.2;
+      }
+
+      .lang-option:hover,
+      .lang-option:focus-visible {
+        outline: none;
+        background: rgba(51, 65, 85, 0.48);
+        color: rgba(248, 250, 252, 0.98);
+      }
+
+      .lang-option[data-active="true"] {
+        background: rgba(30, 64, 175, 0.35);
+        color: rgba(239, 246, 255, 0.98);
+      }
+
+      .whats-new-sparkle {
+        animation: whats-new-float 2.2s ease-in-out infinite;
+      }
+
+      @keyframes whats-new-float {
+        0% {
+          transform: translateY(0) scale(1);
+        }
+        50% {
+          transform: translateY(-2px) scale(1.08);
+        }
+        100% {
+          transform: translateY(0) scale(1);
+        }
+      }
+    </style>
     <link rel="manifest" href="./manifest.json" />
 
     <meta property="og:type" content="website" />
@@ -39,22 +147,22 @@
     <meta property="og:url" content="https://www.ayahday.cc/" />
     <meta
       property="og:title"
-      content="AyahDay - Daily Quran Verses in English &amp; Urdu"
+      content="AyahDay - Daily Quran Verses in English, Urdu &amp; Malay"
     />
     <meta
       property="og:description"
-      content="Free web app for daily Quranic verses in English and Urdu. Reflect, navigate, and share. Powered by Al Quran Cloud."
+      content="Free web app for daily Quranic verses in English, Urdu, and Malay. Reflect, navigate, and share. Powered by Al Quran Cloud."
     />
     <meta property="og:image" content="https://www.ayahday.cc/og-preview.jpg" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
-      content="AyahDay - Daily Quran Verses in English &amp; Urdu"
+      content="AyahDay - Daily Quran Verses in English, Urdu &amp; Malay"
     />
     <meta
       name="twitter:description"
-      content="Free web app for daily Quranic verses in English and Urdu. Reflect, navigate, and share."
+      content="Free web app for daily Quranic verses in English, Urdu, and Malay. Reflect, navigate, and share."
     />
     <meta
       name="twitter:image"
@@ -77,8 +185,8 @@
         "applicationCategory": "LifestyleApplication",
         "operatingSystem": "Web",
         "url": "https://www.ayahday.cc/",
-        "description": "Daily Quranic verses (ayah) in English and Urdu for reflection and sharing. Free web app using Al Quran Cloud.",
-        "featureList": "Daily ayah reflection, English and Urdu Quran translations, WhatsApp sharing, Al Quran Cloud API",
+        "description": "Daily Quranic verses (ayah) in English, Urdu, and Malay for reflection and sharing. Free web app using Al Quran Cloud.",
+        "featureList": "Daily ayah reflection, English, Urdu, and Malay Quran translations, WhatsApp sharing, Al Quran Cloud API",
         "offers": {
           "@type": "Offer",
           "price": "0",
@@ -110,6 +218,7 @@
       crossorigin="anonymous"
     ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.2/html2canvas.min.js"></script>
+    <script async src="https://tally.so/widgets/embed.js"></script>
   </head>
   <body
     class="min-h-screen bg-[radial-gradient(circle_at_top,_#0f172a,_#020617_60%)] p-4 md:p-8"
@@ -128,7 +237,7 @@
               class="element-to-hide mt-0.5 text-xs font-medium text-solar-gold/95"
               id="tagline"
             >
-              Daily Quranic verses in English &amp; Urdu
+              Daily Quranic verses in English, Urdu &amp; Malay
             </p>
             <h1
               id="screenshotLogo"
@@ -140,24 +249,59 @@
               </span>
             </h1>
           </div>
-          <div class="flex shrink-0 items-start justify-end">
-            <button
-              type="button"
-              id="langToggleBtn"
-              class="element-to-hide btn-header-lang"
-              aria-label="Toggle language"
-            >
-              <span class="lang-label-ur">اُردُو</span>
-            </button>
-          </div>
         </div>
       </header>
 
       <main>
+        <div class="mb-3 flex items-center justify-between gap-3">
+          <div
+            id="datetime"
+            class="text-sm font-medium text-solar-slate-400"
+          ></div>
+          <p
+            id="swipeInstruction"
+            class="element-to-hide flex items-center gap-1.5 text-sm text-slate-400"
+          >
+            <span class="material-symbols-outlined text-base" aria-hidden="true"
+              >swipe</span
+            >
+            Swipe left or right
+          </p>
+        </div>
         <div
-          id="datetime"
-          class="pb-1.5 text-sm font-medium text-solar-slate-400"
-        ></div>
+          id="whatsNewNotice"
+          class="element-to-hide mb-4 rounded-xl border border-cyan-300/30 bg-cyan-500/10 p-4 text-cyan-100"
+          role="status"
+          hidden
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <span
+                class="material-symbols-outlined whats-new-sparkle mt-0.5 shrink-0 text-3xl text-cyan-200"
+                aria-hidden="true"
+              >
+                auto_awesome
+              </span>
+              <div>
+                <p id="whatsNewTitle" class="text-base font-semibold">
+                  What's New
+                </p>
+                <p id="whatsNewMessage" class="mt-1 text-sm text-cyan-100/90">
+                  New: Added Malay translation (ms.basmeih) in Language menu.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              id="closeWhatsNewBtn"
+              class="btn-icon h-8 w-8 border-cyan-300/40 bg-cyan-500/10 text-cyan-100 hover:bg-cyan-500/20"
+              aria-label="Close What's New"
+              title="Close What's New"
+            >
+              <i class="fa-solid fa-xmark text-sm" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
         <div
           id="verseDisplay"
           class="glass-card mb-6 flex flex-col justify-center rounded-xl p-4 text-card-foreground ring-1 ring-solar-blue-500/25 md:p-5"
@@ -216,103 +360,112 @@
               <i class="fa-solid fa-caret-right" aria-hidden="true"></i>
             </button>
           </div>
+          <div class="lang-menu" id="language-menu" data-open="false">
+            <button
+              type="button"
+              id="language-trigger"
+              class="lang-trigger"
+              aria-haspopup="menu"
+              aria-expanded="false"
+              aria-controls="language-menu-content"
+              aria-label="Select translation language"
+            >
+              <span id="language-trigger-label">English</span>
+              <svg
+                class="lang-chevron"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path
+                  d="M6 9L12 15L18 9"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+            <div
+              id="language-menu-content"
+              class="lang-content"
+              role="menu"
+              hidden
+            >
+              <button
+                type="button"
+                class="lang-option"
+                role="menuitemradio"
+                data-language="en.asad"
+                aria-checked="false"
+              >
+                English
+              </button>
+              <button
+                type="button"
+                class="lang-option"
+                role="menuitemradio"
+                data-language="ur.maududi"
+                aria-checked="false"
+              >
+                Urdu
+              </button>
+              <button
+                type="button"
+                class="lang-option"
+                role="menuitemradio"
+                data-language="ms.basmeih"
+                aria-checked="false"
+              >
+                Malay
+              </button>
+            </div>
+          </div>
         </div>
       </main>
 
       <footer
-        class="mt-10 w-full border-t border-solar-blue-500/15 pt-4 text-left text-xs text-solar-slate-400/80"
+        class="mt-10 border-t border-white/10 pt-4 text-left text-xs text-slate-400"
       >
-        <p
-          id="swipeInstruction"
-          class="element-to-hide mb-3 flex items-center gap-1.5 text-sm text-solar-slate-400/70"
-        >
-          <span class="material-symbols-outlined text-base" aria-hidden="true"
-            >swipe</span
-          >
-          Swipe left or right
-        </p>
-        <div
-          class="element-to-hide flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-300"
-        >
-          <button
-            type="button"
-            id="aboutBtn"
-            class="footer-link"
-            aria-label="About AyahDay"
-          >
-            About
-          </button>
-          <span class="text-solar-slate-500/70" aria-hidden="true">·</span>
-          <a href="./faq/" class="footer-link">FAQs</a>
-        </div>
-        <p class="mt-3 text-solar-slate-400/80">
+        <p style="margin-bottom: 4px">
           © <span id="footerYear"></span> AyahDay
         </p>
+        <p
+          class="mt-2 text-slate-400/70"
+          style="font-size: 11px; margin-bottom: 4px"
+        >
+          Help me improve AyahDay. Share feedback!
+        </p>
+        <div
+          class="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-300"
+        >
+          <a
+            href="./faq/"
+            class="underline underline-offset-2 hover:text-cyan-200"
+            style="text-decoration: underline; text-underline-offset: 2px"
+            >FAQ</a
+          >
+          <span class="text-slate-500" aria-hidden="true">•</span>
+          <button
+            type="button"
+            class="underline underline-offset-2 hover:text-cyan-200"
+            aria-label="Share your feedback"
+            title="Share your feedback"
+            data-tally-open="xXR2ek"
+            data-tally-hide-title="1"
+            data-tally-overlay="1"
+            data-tally-emoji-text="🕋"
+            data-tally-emoji-animation="heart-beat"
+            data-tally-auto-close="0"
+            data-tally-form-events-forwarding="1"
+            style="text-decoration: underline; text-underline-offset: 2px"
+          >
+            Feedback
+          </button>
+        </div>
       </footer>
     </div>
-
-    <dialog
-      id="descriptionModal"
-      class="app-dialog"
-      aria-labelledby="descriptionModalLabel"
-    >
-      <div class="flex max-h-[min(90vh,48rem)] flex-col">
-        <div
-          class="flex shrink-0 items-start justify-between gap-4 border-b border-white/10 px-6 py-4"
-        >
-          <h2
-            class="pr-4 text-lg font-bold text-foreground"
-            id="descriptionModalLabel"
-          >
-            About AyahDay
-          </h2>
-          <form method="dialog">
-            <button
-              type="submit"
-              class="btn-icon size-9 text-lg leading-none"
-              aria-label="Close"
-            >
-              ×
-            </button>
-          </form>
-        </div>
-        <div
-          class="overflow-y-auto px-6 py-4 text-base leading-relaxed text-muted-foreground"
-        >
-          <p class="mb-4">
-            AyahDay is your gateway to exploring the profound spiritual wisdom
-            encapsulated within the Quran. Each interaction with the app -
-            whether a simple refresh or a click - reveals a unique Ayah,
-            complete with insightful commentary on its Surah. This app not only
-            enriches your daily spiritual practice but also connects you to the
-            timeless teachings of the Quran.
-          </p>
-          <p class="mb-4">
-            Immerse yourself in the enlightening verses (Ayat) from various
-            chapters of the Quran, presented in both English and Urdu
-            translations. Our carefully curated content provides a deep
-            understanding of the context and meaning of each Ayah, making it
-            accessible and relevant to our modern lives.
-          </p>
-          <p class="mb-4">
-            Designed for Muslims around the globe seeking a moment of peace and
-            reflection in their day, AyahDay also extends its reach to anyone
-            interested in the teachings of Islam and the Quran. Share the wisdom
-            of these Quranic verses with friends and family effortlessly,
-            fostering a sense of unity and spiritual growth.
-          </p>
-          <p class="mb-4">
-            Whether you are deepening your existing knowledge or embarking on a
-            new journey of discovery, AyahDay serves as a constant companion in
-            your spiritual journey, illuminating the path with the divine words
-            of the Quran.
-          </p>
-          <p class="font-semibold text-foreground">
-            This app is dedicated to my parents, the roots of my life's tree.
-          </p>
-        </div>
-      </div>
-    </dialog>
 
     <script>
       document.getElementById("footerYear").textContent =
