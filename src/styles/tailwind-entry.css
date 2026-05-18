@@ -31,6 +31,22 @@
 }
 
 @layer utilities {
+  /** html2canvas source: fixed off-screen, same width as main column */
+  .share-snapshot-stage {
+    position: fixed;
+    left: -10000px;
+    top: 0;
+    z-index: -1;
+    width: 42rem;
+    max-width: 100vw;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .share-snapshot-inner {
+    box-sizing: border-box;
+  }
+
   .glass-card {
     @apply border border-solar-blue-500/20 bg-white/5 shadow-[0_10px_30px_rgba(0,0,0,0.25)] backdrop-blur-md;
   }
@@ -94,8 +110,16 @@
     @apply visible opacity-100;
   }
 
+  /** Green → blue like before; gold (#FFB834) only in the last ~10% for a warm hint on the right */
   .text-gradient-solar {
-    @apply bg-gradient-to-r from-solar-green-400 to-solar-blue-400 bg-clip-text font-extrabold text-transparent;
+    @apply bg-clip-text font-extrabold text-transparent;
+    background-image: linear-gradient(
+      90deg,
+      theme(colors.solar.green.400) 0%,
+      theme(colors.solar.blue.400) 68%,
+      theme(colors.solar.blue.400) 90%,
+      #ffb834 100%
+    );
   }
 
   #verseDisplay .verse,

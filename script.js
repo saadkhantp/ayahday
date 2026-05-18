@@ -22,8 +22,13 @@ const API_CONFIG = {
   url: "https://api.alquran.cloud/v1/ayah",
 };
 
+const SHARE_APP_URL = "https://www.ayahday.cc/";
+const SHARE_SNAPSHOT_FOOTER =
+  "AyahDay.cc - Daily Quranic verses in multiple languages";
+
 const SHARE_TOOLTIP_MS = 3000;
 let shareTooltipHideTimer = null;
+let shareSnapshotInProgress = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
   initLanguageSelect();
@@ -385,14 +390,175 @@ function swipeRight(verseDisplay) {
   );
 }
 
-function shareOnWhatsApp() {
-  const verseText = encodeURIComponent(
-    document.getElementById("verseDisplay").innerText,
+function stripDomIdsDeep(el) {
+  if (!el) return;
+  el.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
+  el.removeAttribute("id");
+}
+
+/** html2canvas often fails on bg-clip-text gradients — use solid brand blue in exports only */
+function applySnapshotLogoStyles(logoEl) {
+  logoEl.className =
+    "font-logo text-2xl font-extrabold tracking-tight text-solar-blue-400 sm:text-3xl";
+}
+
+function buildShareSnapshotContent() {
+  const mount = document.getElementById("shareSnapshotContent");
+  const logo = document.getElementById("gradientLogo");
+  const tagline = document.getElementById("tagline");
+  const datetime = document.getElementById("datetime");
+  const verse = document.getElementById("verseDisplay");
+  if (!mount || !logo || !tagline || !datetime || !verse) {
+    throw new Error("Share snapshot: required elements missing");
+  }
+
+  mount.replaceChildren();
+
+  const inner = document.createElement("div");
+  inner.className =
+    "share-snapshot-inner w-full rounded-xl border border-white/10 bg-[#020617] p-4 md:p-5";
+
+  const headerWrap = document.createElement("div");
+  headerWrap.className = "mb-6";
+  const logoClone = logo.cloneNode(true);
+  const tagClone = tagline.cloneNode(true);
+  stripDomIdsDeep(logoClone);
+  applySnapshotLogoStyles(logoClone);
+  stripDomIdsDeep(tagClone);
+  headerWrap.append(logoClone, tagClone);
+  inner.appendChild(headerWrap);
+
+  const dateRow = document.createElement("div");
+  dateRow.className = "mb-3 text-sm font-medium text-solar-slate-400";
+  dateRow.textContent = datetime.textContent;
+  inner.appendChild(dateRow);
+
+  const verseClone = verse.cloneNode(true);
+  stripDomIdsDeep(verseClone);
+  inner.appendChild(verseClone);
+
+  const foot = document.createElement("p");
+  foot.className =
+    "mt-6 text-center text-[11px] font-normal leading-snug text-slate-400/90";
+  foot.textContent = SHARE_SNAPSHOT_FOOTER;
+  inner.appendChild(foot);
+
+  mount.appendChild(inner);
+  return inner;
+}
+
+/**
+ * Desktop share sheets (esp. macOS) often expose Web Share with files but do not
+ * hand off reliably to WhatsApp. Limit file-sharing to mobile OSes where it works well.
+ */
+function shouldOfferWebShareFiles() {
+  if (typeof navigator === "undefined" || !navigator.share || !navigator.canShare) {
+    return false;
+  }
+  const ua = navigator.userAgent || "";
+  if (/Android/i.test(ua)) return true;
+  if (/iPhone|iPod|iPad/i.test(ua)) return true;
+  if (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1) {
+    return true;
+  }
+  return false;
+}
+
+function triggerSnapshotDownload(snapshotBlob) {
+  const url = URL.createObjectURL(snapshotBlob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `ayahday-${currentAyahNumber}.png`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+function openWhatsAppWithText(text) {
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+  const popup = window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+  if (!popup) {
+    window.location.href = whatsappUrl;
+  }
+}
+
+async function captureShareSnapshotBlob() {
+  if (typeof html2canvas !== "function") {
+    throw new Error("html2canvas is not loaded");
+  }
+  closeLanguageMenu();
+  closeShareTooltip();
+  const target = buildShareSnapshotContent();
+  if (document.fonts?.ready) {
+    await document.fonts.ready;
+  }
+  await new Promise((resolve) =>
+    requestAnimationFrame(() => requestAnimationFrame(resolve)),
   );
-  const appUrl = "https://www.ayahday.cc/";
-  const whatsappMessage = `${verseText}%0A%0AExplore more at ${appUrl}`;
-  const whatsappUrl = `https://wa.me/?text=${whatsappMessage}`;
-  window.open(whatsappUrl, "_blank");
+  const canvas = await html2canvas(target, {
+    backgroundColor: "#020617",
+    scale: 2,
+    useCORS: true,
+    logging: false,
+  });
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("PNG export failed"));
+    }, "image/png");
+  });
+}
+
+async function shareOnWhatsApp() {
+  if (shareSnapshotInProgress) return;
+  shareSnapshotInProgress = true;
+  const shareBtn = document.getElementById("shareBtn");
+  if (shareBtn) shareBtn.disabled = true;
+
+  const verseEl = document.getElementById("verseDisplay");
+  const versePlain = verseEl?.innerText ?? "";
+
+  try {
+    let snapshotBlob = null;
+    try {
+      snapshotBlob = await captureShareSnapshotBlob();
+    } catch (err) {
+      console.warn("AyahDay snapshot capture failed:", err);
+    }
+
+    if (snapshotBlob) {
+      const file = new File([snapshotBlob], "ayahday-verse.png", {
+        type: "image/png",
+      });
+      const useWebShare =
+        shouldOfferWebShareFiles() && navigator.canShare?.({ files: [file] });
+      if (useWebShare) {
+        try {
+          await navigator.share({
+            files: [file],
+            text: `${SHARE_SNAPSHOT_FOOTER}\n${SHARE_APP_URL}`,
+          });
+          return;
+        } catch (err) {
+          if (err.name === "AbortError") return;
+          console.warn("Web Share failed:", err);
+        }
+      }
+      try {
+        triggerSnapshotDownload(snapshotBlob);
+      } catch (_) {
+        /* ignore */
+      }
+    }
+
+    openWhatsAppWithText(
+      `${versePlain}\n\nExplore more at ${SHARE_APP_URL}`,
+    );
+  } finally {
+    shareSnapshotInProgress = false;
+    if (shareBtn) shareBtn.disabled = false;
+  }
 }
 
 function handleLanguageChange(languageEdition) {
@@ -426,7 +592,7 @@ function updateLanguageDisplay() {
     document.documentElement.dir = "rtl";
     if (tagline) {
       tagline.className =
-        "element-to-hide mt-0.5 font-urduHeader text-sm font-medium leading-8 text-solar-gold/95";
+        "element-to-hide mt-0.5 font-urduHeader text-sm font-medium leading-8 text-solar-gold";
       tagline.textContent = "انگریزی، اردو اور مالے میں روزانہ کی آیات";
     }
     if (shareTooltipLabel) {
@@ -449,7 +615,7 @@ function updateLanguageDisplay() {
   document.documentElement.dir = "ltr";
   if (tagline) {
     tagline.className =
-      "element-to-hide mt-0.5 text-xs font-medium text-solar-gold/95";
+      "element-to-hide mt-0.5 text-xs font-medium text-solar-gold";
     tagline.textContent = "Daily Quranic verses in English, Urdu & Malay";
   }
   if (shareTooltipLabel) {
@@ -493,43 +659,6 @@ function updatePrevButtonState() {
   } else {
     prevBtn.classList.add("disabled");
   }
-}
-
-const saveImageBtn = document.getElementById("saveImageBtn");
-if (saveImageBtn) {
-  saveImageBtn.addEventListener("click", function () {
-    const elementsToHide = document.querySelectorAll(".element-to-hide");
-    elementsToHide.forEach((element) => {
-      element.style.display = "none";
-    });
-
-    document.getElementById("gradientLogo").style.display = "none";
-    document.getElementById("screenshotLogo").classList.remove("hidden");
-    document.getElementById("screenshotLogo").style.display = "block";
-
-    html2canvas(document.documentElement, {
-      backgroundColor: "#020617",
-      scale: 1,
-      windowWidth: document.documentElement.scrollWidth,
-      windowHeight: document.documentElement.scrollHeight,
-    }).then(function (canvas) {
-      elementsToHide.forEach((element) => {
-        element.style.display = "";
-      });
-
-      document.getElementById("gradientLogo").style.display = "";
-      document.getElementById("screenshotLogo").style.display = "none";
-      document.getElementById("screenshotLogo").classList.add("hidden");
-
-      const timestamp = new Date().toISOString().replace(/[:.-]/g, "");
-      const fileName = `ayah-${currentAyahNumber}-${timestamp}.png`;
-
-      var link = document.createElement("a");
-      link.download = fileName;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    });
-  });
 }
 
 function updateDateTime() {

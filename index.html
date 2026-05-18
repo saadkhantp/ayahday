@@ -234,7 +234,7 @@
               AyahDay
             </h1>
             <p
-              class="element-to-hide mt-0.5 text-xs font-medium text-solar-gold/95"
+              class="element-to-hide mt-0.5 text-xs font-medium text-solar-gold"
               id="tagline"
             >
               Daily Quranic verses in English, Urdu &amp; Malay
@@ -465,6 +465,15 @@
           </button>
         </div>
       </footer>
+    </div>
+
+    <!-- Off-screen DOM for html2canvas (logo, date, verse, controls, custom footer). -->
+    <div
+      id="shareSnapshotStage"
+      class="share-snapshot-stage"
+      aria-hidden="true"
+    >
+      <div id="shareSnapshotContent"></div>
     </div>
 
     <script>
