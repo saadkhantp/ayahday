@@ -196,6 +196,6 @@
   }
 
   .share-preview-confirm {
-    @apply mt-4 inline-flex w-full items-center justify-center rounded-lg border border-transparent bg-[#075E54] px-4 py-3 text-base font-semibold text-white shadow-none outline-none transition hover:bg-[#0d8073] focus-visible:ring-2 focus-visible:ring-sky-400/50 disabled:opacity-50;
+    @apply mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-transparent bg-[#075E54] px-4 py-3 text-base font-semibold text-white shadow-none outline-none transition hover:bg-[#0d8073] focus-visible:ring-2 focus-visible:ring-sky-400/50 disabled:opacity-50;
   }
 }
