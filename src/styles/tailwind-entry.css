@@ -127,13 +127,17 @@
     @apply relative z-[9] text-left text-shadow-sm;
   }
 
-  #verseDisplay .surah::before {
-    content: "";
-    @apply my-6 block h-px w-[100px] bg-gradient-to-r from-solar-green-400/60 to-solar-blue-400/60;
+  /** Real element (not ::before) so snapshots/html2canvas keep ayah ↔ surah spacing */
+  #verseDisplay .verse-surah-divider {
+    @apply my-5 block h-px w-[100px] shrink-0 bg-slate-400/45;
+  }
+
+  #verseDisplay.urdu-style .verse-surah-divider {
+    @apply ms-auto;
   }
 
   #verseDisplay .verse {
-    @apply mb-0 text-2xl font-bold leading-snug text-solar-slate-50 first-letter:uppercase;
+    @apply mb-0 text-xl font-bold leading-snug text-solar-slate-50 first-letter:uppercase;
   }
 
   #verseDisplay.urdu-style {
@@ -142,7 +146,7 @@
   }
 
   #verseDisplay.urdu-style .verse {
-    @apply font-urduHeader text-xl leading-10 text-solar-slate-50 sm:text-2xl;
+    @apply font-urduHeader text-lg leading-8 text-solar-slate-50 sm:text-xl sm:leading-9;
   }
 
   #verseDisplay.urdu-style .verse:first-letter {
@@ -156,7 +160,24 @@
   }
 
   #verseDisplay .surah {
-    @apply text-solar-slate-300;
+    @apply text-sm text-solar-slate-300;
+  }
+
+  /** Share PNG: slightly tighter type so long ayat fit */
+  .share-snapshot-inner #verseDisplay .verse {
+    @apply text-base leading-snug;
+  }
+
+  .share-snapshot-inner #verseDisplay.urdu-style .verse {
+    @apply text-sm leading-7 sm:text-base sm:leading-8;
+  }
+
+  .share-snapshot-inner #verseDisplay .surah {
+    @apply text-xs;
+  }
+
+  .share-snapshot-inner #verseDisplay .verse-surah-divider {
+    @apply my-4;
   }
 
   #verseDisplay .error {

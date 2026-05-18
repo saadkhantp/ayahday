@@ -139,6 +139,62 @@
           transform: translateY(0) scale(1);
         }
       }
+
+      /* Boot overlay: visible before app.css/JS so first paint isn’t janky */
+      #appBootOverlay.app-boot-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483646;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        background: radial-gradient(
+          circle at top,
+          #0f172a,
+          #020617 60%
+        );
+        transition:
+          opacity 0.4s ease,
+          visibility 0.4s ease;
+      }
+
+      #appBootOverlay.app-boot-overlay--hide {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      .app-boot-overlay__inner {
+        text-align: center;
+      }
+
+      .app-boot-overlay__mark {
+        font-family:
+          "Mulish",
+          system-ui,
+          sans-serif;
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: #7dd3fc;
+      }
+
+      .app-boot-overlay__spinner {
+        width: 2rem;
+        height: 2rem;
+        margin: 1.1rem auto 0;
+        border: 2px solid rgba(148, 163, 184, 0.28);
+        border-top-color: #38bdf8;
+        border-radius: 50%;
+        animation: app-boot-spin 0.72s linear infinite;
+      }
+
+      @keyframes app-boot-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
     </style>
     <link rel="manifest" href="./manifest.json" />
 
@@ -223,6 +279,20 @@
   <body
     class="min-h-screen bg-[radial-gradient(circle_at_top,_#0f172a,_#020617_60%)] p-4 md:p-8"
   >
+    <div
+      id="appBootOverlay"
+      class="app-boot-overlay"
+      role="progressbar"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-busy="true"
+      aria-label="Loading AyahDay"
+    >
+      <div class="app-boot-overlay__inner">
+        <div class="app-boot-overlay__mark">AyahDay</div>
+        <div class="app-boot-overlay__spinner"></div>
+      </div>
+    </div>
     <div class="theme mx-auto w-full max-w-2xl">
       <header class="mb-8">
         <div class="flex items-start justify-between gap-3">

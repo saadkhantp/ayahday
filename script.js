@@ -38,6 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   addEventListeners();
   initShareTooltip();
   updateLanguageDisplay();
+  revealAppWhenReady();
 });
 
 async function fetchAndDisplayAyah(ayahNumber) {
@@ -85,7 +86,19 @@ function displayVerse(data) {
   const surahInfo = data.data.surah;
   const surahDetails = `${surahInfo.name} (${surahInfo.englishName}, ${surahInfo.englishNameTranslation})<br>${surahInfo.revelationType}`;
   const verseDisplay = document.getElementById("verseDisplay");
-  verseDisplay.innerHTML = `<p class="verse">${verseText}</p><small class="surah">${surahDetails}</small>`;
+  verseDisplay.innerHTML = `<p class="verse">${verseText}</p><div class="verse-surah-divider" aria-hidden="true"></div><small class="surah">${surahDetails}</small>`;
+}
+
+function revealAppWhenReady() {
+  const overlay = document.getElementById("appBootOverlay");
+  if (!overlay) return;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      overlay.classList.add("app-boot-overlay--hide");
+      overlay.setAttribute("aria-busy", "false");
+      setTimeout(() => overlay.remove(), 450);
+    });
+  });
 }
 
 function getRandomAyahNumber() {
