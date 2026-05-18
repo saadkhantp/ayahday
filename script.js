@@ -441,6 +441,38 @@ function applySnapshotLogoStyles(logoEl) {
     "font-logo text-2xl font-extrabold tracking-tight text-solar-blue-400 sm:text-3xl";
 }
 
+function applySnapshotVerseStyles(verseClone) {
+  if (!verseClone) return;
+  const surahEl = verseClone.querySelector(".surah");
+  let divider = verseClone.querySelector(".verse-surah-divider");
+
+  if (!divider && surahEl) {
+    divider = document.createElement("div");
+    divider.className = "verse-surah-divider";
+    divider.setAttribute("aria-hidden", "true");
+    surahEl.insertAdjacentElement("beforebegin", divider);
+  }
+
+  if (divider) {
+    const isUrdu = verseClone.classList.contains("urdu-style");
+    divider.style.display = "block";
+    divider.style.width = "100px";
+    divider.style.maxWidth = "100%";
+    divider.style.height = "2px";
+    divider.style.marginTop = "1rem";
+    divider.style.marginBottom = "1rem";
+    divider.style.borderRadius = "9999px";
+    divider.style.background = "rgba(148, 163, 184, 0.75)";
+    divider.style.alignSelf = isUrdu ? "flex-end" : "flex-start";
+  }
+
+  if (surahEl) {
+    surahEl.style.fontSize = "10px";
+    surahEl.style.lineHeight = "1.35";
+    surahEl.style.color = "#94a3b8"; // slate-400
+  }
+}
+
 function buildShareSnapshotContent() {
   const mount = document.getElementById("shareSnapshotContent");
   const logo = document.getElementById("gradientLogo");
@@ -474,6 +506,7 @@ function buildShareSnapshotContent() {
 
   const verseClone = verse.cloneNode(true);
   stripDomIdsDeep(verseClone);
+  applySnapshotVerseStyles(verseClone);
   inner.appendChild(verseClone);
 
   const foot = document.createElement("p");
