@@ -122,65 +122,65 @@
     );
   }
 
-  #verseDisplay .verse,
-  #verseDisplay .surah {
+  .ayah-day-verse-panel .verse,
+  .ayah-day-verse-panel .surah {
     @apply relative z-[9] text-left text-shadow-sm;
   }
 
   /** Real element (not ::before) so snapshots/html2canvas keep ayah ↔ surah spacing */
-  #verseDisplay .verse-surah-divider {
-    @apply my-5 block h-px w-[100px] shrink-0 bg-slate-400/45;
+  .ayah-day-verse-panel .verse-surah-divider {
+    @apply my-5 block h-0.5 w-[100px] max-w-full shrink-0 self-start rounded-full bg-slate-400/70;
   }
 
-  #verseDisplay.urdu-style .verse-surah-divider {
-    @apply ms-auto;
+  .ayah-day-verse-panel.urdu-style .verse-surah-divider {
+    @apply ms-auto self-end;
   }
 
-  #verseDisplay .verse {
+  .ayah-day-verse-panel .verse {
     @apply mb-0 text-xl font-bold leading-snug text-solar-slate-50 first-letter:uppercase;
   }
 
-  #verseDisplay.urdu-style {
+  .ayah-day-verse-panel.urdu-style {
     @apply text-right;
     direction: rtl;
   }
 
-  #verseDisplay.urdu-style .verse {
+  .ayah-day-verse-panel.urdu-style .verse {
     @apply font-urduHeader text-lg leading-8 text-solar-slate-50 sm:text-xl sm:leading-9;
   }
 
-  #verseDisplay.urdu-style .verse:first-letter {
+  .ayah-day-verse-panel.urdu-style .verse:first-letter {
     text-transform: none;
   }
 
-  #verseDisplay.urdu-style .verse,
-  #verseDisplay.urdu-style .surah {
+  .ayah-day-verse-panel.urdu-style .verse,
+  .ayah-day-verse-panel.urdu-style .surah {
     @apply text-right;
     direction: rtl;
   }
 
-  #verseDisplay .surah {
-    @apply text-sm text-solar-slate-300;
+  .ayah-day-verse-panel .surah {
+    @apply text-xs text-solar-slate-300;
   }
 
-  /** Share PNG: slightly tighter type so long ayat fit */
-  .share-snapshot-inner #verseDisplay .verse {
+  /** Share PNG: slightly tighter type; divider must use same panel class (id stripped on clone) */
+  .share-snapshot-inner .ayah-day-verse-panel .verse {
     @apply text-base leading-snug;
   }
 
-  .share-snapshot-inner #verseDisplay.urdu-style .verse {
+  .share-snapshot-inner .ayah-day-verse-panel.urdu-style .verse {
     @apply text-sm leading-7 sm:text-base sm:leading-8;
   }
 
-  .share-snapshot-inner #verseDisplay .surah {
-    @apply text-xs;
+  .share-snapshot-inner .ayah-day-verse-panel .surah {
+    @apply text-[10px] leading-snug text-slate-400;
   }
 
-  .share-snapshot-inner #verseDisplay .verse-surah-divider {
-    @apply my-4;
+  .share-snapshot-inner .ayah-day-verse-panel .verse-surah-divider {
+    @apply my-4 h-0.5 bg-slate-400/75;
   }
 
-  #verseDisplay .error {
+  .ayah-day-verse-panel .error {
     @apply text-destructive;
   }
 
