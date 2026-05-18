@@ -518,6 +518,7 @@ async function shareOnWhatsApp() {
 
   const verseEl = document.getElementById("verseDisplay");
   const versePlain = verseEl?.innerText ?? "";
+  const shareTextBody = `${versePlain}\n\nExplore more at ${SHARE_APP_URL}`;
 
   try {
     let snapshotBlob = null;
@@ -537,7 +538,7 @@ async function shareOnWhatsApp() {
         try {
           await navigator.share({
             files: [file],
-            text: `${SHARE_SNAPSHOT_FOOTER}\n${SHARE_APP_URL}`,
+            text: shareTextBody,
           });
           return;
         } catch (err) {
@@ -552,9 +553,7 @@ async function shareOnWhatsApp() {
       }
     }
 
-    openWhatsAppWithText(
-      `${versePlain}\n\nExplore more at ${SHARE_APP_URL}`,
-    );
+    openWhatsAppWithText(shareTextBody);
   } finally {
     shareSnapshotInProgress = false;
     if (shareBtn) shareBtn.disabled = false;
