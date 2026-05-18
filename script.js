@@ -30,15 +30,24 @@ const SHARE_TOOLTIP_MS = 3000;
 let shareTooltipHideTimer = null;
 let shareSnapshotInProgress = false;
 
+const BOOT_OVERLAY_FALLBACK_MS = 3000;
+let bootOverlayFallbackTimer = null;
+
 document.addEventListener("DOMContentLoaded", async () => {
-  initLanguageSelect();
-  initWhatsNewNotice();
-  await fetchAndDisplayAyah(currentAyahNumber);
-  nextAyahData = await fetchAyah(getRandomAyahNumber());
-  addEventListeners();
-  initShareTooltip();
-  updateLanguageDisplay();
-  revealAppWhenReady();
+  scheduleBootOverlayFallback();
+  try {
+    initLanguageSelect();
+    initWhatsNewNotice();
+    await fetchAndDisplayAyah(currentAyahNumber);
+    nextAyahData = await fetchAyah(getRandomAyahNumber());
+    addEventListeners();
+    initShareTooltip();
+    updateLanguageDisplay();
+  } catch (err) {
+    console.error("AyahDay boot failed:", err);
+  } finally {
+    revealBootOverlay();
+  }
 });
 
 async function fetchAndDisplayAyah(ayahNumber) {
@@ -89,9 +98,26 @@ function displayVerse(data) {
   verseDisplay.innerHTML = `<p class="verse">${verseText}</p><div class="verse-surah-divider" aria-hidden="true"></div><small class="surah">${surahDetails}</small>`;
 }
 
-function revealAppWhenReady() {
+function scheduleBootOverlayFallback() {
+  clearBootOverlayFallback();
+  bootOverlayFallbackTimer = setTimeout(() => {
+    bootOverlayFallbackTimer = null;
+    revealBootOverlay();
+  }, BOOT_OVERLAY_FALLBACK_MS);
+}
+
+function clearBootOverlayFallback() {
+  if (bootOverlayFallbackTimer != null) {
+    clearTimeout(bootOverlayFallbackTimer);
+    bootOverlayFallbackTimer = null;
+  }
+}
+
+function revealBootOverlay() {
   const overlay = document.getElementById("appBootOverlay");
-  if (!overlay) return;
+  clearBootOverlayFallback();
+  if (!overlay || overlay.dataset.revealed === "1") return;
+  overlay.dataset.revealed = "1";
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       overlay.classList.add("app-boot-overlay--hide");
