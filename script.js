@@ -24,7 +24,7 @@ const API_CONFIG = {
 
 const SHARE_APP_URL = "https://www.ayahday.cc/";
 const SHARE_SNAPSHOT_FOOTER =
-  "AyahDay.cc - Daily Quranic verses in multiple languages";
+  "AyahDay.cc - Daily Quranic verses in Multiple Languages";
 
 const SHARE_TOOLTIP_MS = 3000;
 let shareTooltipHideTimer = null;
@@ -95,6 +95,7 @@ function displayVerse(data) {
   const surahInfo = data.data.surah;
   const surahDetails = `${surahInfo.name} (${surahInfo.englishName}, ${surahInfo.englishNameTranslation})<br>${surahInfo.revelationType}`;
   const verseDisplay = document.getElementById("verseDisplay");
+  verseDisplay.dataset.surahShareArabic = surahInfo.name;
   verseDisplay.innerHTML = `<p class="verse">${verseText}</p><div class="verse-surah-divider" aria-hidden="true"></div><small class="surah">${surahDetails}</small>`;
 }
 
@@ -134,7 +135,19 @@ function getRandomAyahNumber() {
 function addEventListeners() {
   document
     .getElementById("shareBtn")
-    .addEventListener("click", shareOnWhatsApp);
+    .addEventListener("click", openSharePreview);
+  const sharePreviewClose = document.getElementById("sharePreviewClose");
+  const sharePreviewBackdrop = document.getElementById("sharePreviewBackdrop");
+  const sharePreviewConfirm = document.getElementById("sharePreviewConfirm");
+  if (sharePreviewClose) {
+    sharePreviewClose.addEventListener("click", closeSharePreview);
+  }
+  if (sharePreviewBackdrop) {
+    sharePreviewBackdrop.addEventListener("click", closeSharePreview);
+  }
+  if (sharePreviewConfirm) {
+    sharePreviewConfirm.addEventListener("click", runShareFromPreview);
+  }
   document.getElementById("nextBtn").addEventListener("click", fetchNewVerse);
   const prevBtn = document.getElementById("prevBtn");
   prevBtn.classList.add("disabled");
@@ -156,7 +169,13 @@ function addEventListeners() {
     closeLanguageMenu();
   });
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") closeLanguageMenu();
+    if (event.key !== "Escape") return;
+    const shareModal = document.getElementById("sharePreviewModal");
+    if (shareModal && !shareModal.hidden) {
+      closeSharePreview();
+      return;
+    }
+    closeLanguageMenu();
   });
   document.addEventListener("touchstart", handleTouchStart, false);
   document.addEventListener("touchend", handleTouchEnd, false);
@@ -377,6 +396,7 @@ function handleTouchEnd(e) {
 
 function displayError(message) {
   const verseDisplay = document.getElementById("verseDisplay");
+  delete verseDisplay.dataset.surahShareArabic;
   verseDisplay.innerHTML = `<p class="error">${message}</p>`;
 }
 
@@ -429,94 +449,84 @@ function swipeRight(verseDisplay) {
   );
 }
 
-function stripDomIdsDeep(el) {
-  if (!el) return;
-  el.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
-  el.removeAttribute("id");
+function openSharePreview() {
+  const modal = document.getElementById("sharePreviewModal");
+  const root = document.getElementById("sharePreviewCaptureRoot");
+  if (!modal || !root) return;
+  fillSharePreviewCaptureRoot(root);
+  modal.hidden = false;
+  modal.setAttribute("aria-hidden", "false");
+  document.documentElement.style.overflow = "hidden";
+  document.body.style.overflow = "hidden";
+  document.getElementById("sharePreviewConfirm")?.focus();
 }
 
-/** html2canvas often fails on bg-clip-text gradients — use solid brand blue in exports only */
-function applySnapshotLogoStyles(logoEl) {
-  logoEl.className =
-    "font-logo text-2xl font-extrabold tracking-tight text-solar-blue-400 sm:text-3xl";
+function closeSharePreview() {
+  const modal = document.getElementById("sharePreviewModal");
+  if (!modal || modal.hidden) return;
+  modal.hidden = true;
+  modal.setAttribute("aria-hidden", "true");
+  document.documentElement.style.overflow = "";
+  document.body.style.overflow = "";
 }
 
-function applySnapshotVerseStyles(verseClone) {
-  if (!verseClone) return;
-  const surahEl = verseClone.querySelector(".surah");
-  let divider = verseClone.querySelector(".verse-surah-divider");
+function fillSharePreviewCaptureRoot(root) {
+  root.replaceChildren();
+  const isUrdu = currentLang === "ur.maududi";
+  root.className =
+    "share-preview-capture rounded-lg bg-[#020617] p-4 sm:p-5 " +
+    (isUrdu ? "text-right" : "text-left");
+  root.setAttribute("dir", isUrdu ? "rtl" : "ltr");
 
-  if (!divider && surahEl) {
-    divider = document.createElement("div");
-    divider.className = "verse-surah-divider";
+  const versePanel = document.getElementById("verseDisplay");
+  const verseEl = versePanel?.querySelector(".verse");
+  const hasError = versePanel?.querySelector(".error");
+  const arabicSurahName = versePanel?.dataset.surahShareArabic ?? "";
+
+  const logo = document.createElement("h2");
+  logo.className =
+    "font-logo text-lg font-extrabold tracking-tight text-solar-blue-400 sm:text-xl";
+  logo.textContent = "AyahDay";
+  root.appendChild(logo);
+
+  if (hasError) {
+    const err = document.createElement("p");
+    err.className = "mt-3 text-sm text-red-400";
+    err.textContent = hasError.textContent ?? "";
+    root.appendChild(err);
+  } else {
+    const ayah = document.createElement("p");
+    ayah.className = isUrdu
+      ? "font-urduHeader mt-3 text-base font-bold leading-7 text-slate-100 sm:text-lg"
+      : "mt-3 text-base font-bold leading-snug text-slate-100 first-letter:uppercase sm:text-lg";
+    ayah.textContent = verseEl?.textContent ?? "";
+
+    const divider = document.createElement("div");
     divider.setAttribute("aria-hidden", "true");
-    surahEl.insertAdjacentElement("beforebegin", divider);
+    Object.assign(divider.style, {
+      width: "100px",
+      height: "2px",
+      marginTop: "calc(1rem + 10px)",
+      marginBottom: "1rem",
+      borderRadius: "9999px",
+      background: "rgba(148, 163, 184, 0.85)",
+      alignSelf: "flex-start",
+    });
+
+    const surah = document.createElement("div");
+    surah.className =
+      "font-urduUi text-[10px] leading-relaxed text-slate-400";
+    surah.setAttribute("dir", "rtl");
+    surah.textContent = arabicSurahName;
+
+    root.append(ayah, divider, surah);
   }
-
-  if (divider) {
-    const isUrdu = verseClone.classList.contains("urdu-style");
-    divider.style.display = "block";
-    divider.style.width = "100px";
-    divider.style.maxWidth = "100%";
-    divider.style.height = "2px";
-    divider.style.marginTop = "1rem";
-    divider.style.marginBottom = "1rem";
-    divider.style.borderRadius = "9999px";
-    divider.style.background = "rgba(148, 163, 184, 0.75)";
-    divider.style.alignSelf = isUrdu ? "flex-end" : "flex-start";
-  }
-
-  if (surahEl) {
-    surahEl.style.fontSize = "10px";
-    surahEl.style.lineHeight = "1.35";
-    surahEl.style.color = "#94a3b8"; // slate-400
-  }
-}
-
-function buildShareSnapshotContent() {
-  const mount = document.getElementById("shareSnapshotContent");
-  const logo = document.getElementById("gradientLogo");
-  const tagline = document.getElementById("tagline");
-  const datetime = document.getElementById("datetime");
-  const verse = document.getElementById("verseDisplay");
-  if (!mount || !logo || !tagline || !datetime || !verse) {
-    throw new Error("Share snapshot: required elements missing");
-  }
-
-  mount.replaceChildren();
-
-  const inner = document.createElement("div");
-  inner.className =
-    "share-snapshot-inner w-full rounded-xl border border-white/10 bg-[#020617] p-4 md:p-5";
-
-  const headerWrap = document.createElement("div");
-  headerWrap.className = "mb-6";
-  const logoClone = logo.cloneNode(true);
-  const tagClone = tagline.cloneNode(true);
-  stripDomIdsDeep(logoClone);
-  applySnapshotLogoStyles(logoClone);
-  stripDomIdsDeep(tagClone);
-  headerWrap.append(logoClone, tagClone);
-  inner.appendChild(headerWrap);
-
-  const dateRow = document.createElement("div");
-  dateRow.className = "mb-3 text-sm font-medium text-solar-slate-400";
-  dateRow.textContent = datetime.textContent;
-  inner.appendChild(dateRow);
-
-  const verseClone = verse.cloneNode(true);
-  stripDomIdsDeep(verseClone);
-  applySnapshotVerseStyles(verseClone);
-  inner.appendChild(verseClone);
 
   const foot = document.createElement("p");
   foot.className =
-    "mt-6 text-center text-[11px] font-normal leading-snug text-slate-400/90";
+    "mt-5 text-center text-[10px] font-normal leading-snug text-slate-400";
   foot.textContent = SHARE_SNAPSHOT_FOOTER;
-  inner.appendChild(foot);
-
-  mount.appendChild(inner);
-  return inner;
+  root.appendChild(foot);
 }
 
 /**
@@ -549,19 +559,27 @@ function triggerSnapshotDownload(snapshotBlob) {
 
 function openWhatsAppWithText(text) {
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
-  const popup = window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-  if (!popup) {
-    window.location.href = whatsappUrl;
-  }
+  const opened = window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+  if (opened) return;
+  const a = document.createElement("a");
+  a.href = whatsappUrl;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 }
 
-async function captureShareSnapshotBlob() {
+async function captureSharePreviewBlob() {
   if (typeof html2canvas !== "function") {
     throw new Error("html2canvas is not loaded");
   }
+  const target = document.getElementById("sharePreviewCaptureRoot");
+  if (!target) {
+    throw new Error("Share preview capture root missing");
+  }
   closeLanguageMenu();
   closeShareTooltip();
-  const target = buildShareSnapshotContent();
   if (document.fonts?.ready) {
     await document.fonts.ready;
   }
@@ -582,20 +600,33 @@ async function captureShareSnapshotBlob() {
   });
 }
 
-async function shareOnWhatsApp() {
+/** Plain text for wa.me / Web Share: ayah + Arabic surah only (matches card image). */
+function buildWhatsAppShareText() {
+  const versePanel = document.getElementById("verseDisplay");
+  if (!versePanel) {
+    return `\n\nExplore more at ${SHARE_APP_URL}`;
+  }
+  if (versePanel.querySelector(".error")) {
+    return `${versePanel.innerText}\n\nExplore more at ${SHARE_APP_URL}`;
+  }
+  const ayah = versePanel.querySelector(".verse")?.textContent?.trim() ?? "";
+  const surahAr = versePanel.dataset.surahShareArabic?.trim() ?? "";
+  const body = [ayah, surahAr].filter(Boolean).join("\n");
+  return `${body}\n\nExplore more at ${SHARE_APP_URL}`;
+}
+
+async function runShareFromPreview() {
   if (shareSnapshotInProgress) return;
   shareSnapshotInProgress = true;
-  const shareBtn = document.getElementById("shareBtn");
-  if (shareBtn) shareBtn.disabled = true;
+  const confirmBtn = document.getElementById("sharePreviewConfirm");
+  const shareTextBody = buildWhatsAppShareText();
 
-  const verseEl = document.getElementById("verseDisplay");
-  const versePlain = verseEl?.innerText ?? "";
-  const shareTextBody = `${versePlain}\n\nExplore more at ${SHARE_APP_URL}`;
+  if (confirmBtn) confirmBtn.disabled = true;
 
   try {
     let snapshotBlob = null;
     try {
-      snapshotBlob = await captureShareSnapshotBlob();
+      snapshotBlob = await captureSharePreviewBlob();
     } catch (err) {
       console.warn("AyahDay snapshot capture failed:", err);
     }
@@ -612,9 +643,13 @@ async function shareOnWhatsApp() {
             files: [file],
             text: shareTextBody,
           });
+          closeSharePreview();
           return;
         } catch (err) {
-          if (err.name === "AbortError") return;
+          if (err.name === "AbortError") {
+            closeSharePreview();
+            return;
+          }
           console.warn("Web Share failed:", err);
         }
       }
@@ -626,9 +661,10 @@ async function shareOnWhatsApp() {
     }
 
     openWhatsAppWithText(shareTextBody);
+    closeSharePreview();
   } finally {
     shareSnapshotInProgress = false;
-    if (shareBtn) shareBtn.disabled = false;
+    if (confirmBtn) confirmBtn.disabled = false;
   }
 }
 

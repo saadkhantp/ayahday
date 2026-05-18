@@ -31,22 +31,6 @@
 }
 
 @layer utilities {
-  /** html2canvas source: fixed off-screen, same width as main column */
-  .share-snapshot-stage {
-    position: fixed;
-    left: -10000px;
-    top: 0;
-    z-index: -1;
-    width: 42rem;
-    max-width: 100vw;
-    pointer-events: none;
-    overflow: hidden;
-  }
-
-  .share-snapshot-inner {
-    box-sizing: border-box;
-  }
-
   .glass-card {
     @apply border border-solar-blue-500/20 bg-white/5 shadow-[0_10px_30px_rgba(0,0,0,0.25)] backdrop-blur-md;
   }
@@ -122,6 +106,17 @@
     );
   }
 
+  /** Mirror gradient for RTL so the warm hint sits on the “start” side visually */
+  :root[dir="rtl"] .text-gradient-solar {
+    background-image: linear-gradient(
+      270deg,
+      theme(colors.solar.green.400) 0%,
+      theme(colors.solar.blue.400) 68%,
+      theme(colors.solar.blue.400) 90%,
+      #ffb834 100%
+    );
+  }
+
   .ayah-day-verse-panel .verse,
   .ayah-day-verse-panel .surah {
     @apply relative z-[9] text-left text-shadow-sm;
@@ -132,8 +127,12 @@
     @apply my-5 block h-0.5 w-[100px] max-w-full shrink-0 self-start rounded-full bg-slate-400/70;
   }
 
+  /**
+   * RTL + flex-col: cross-start is inline-start (right). self-start aligns the rule
+   * with the ayah/surah block; ms-auto/self-end kept it on the wrong edge.
+   */
   .ayah-day-verse-panel.urdu-style .verse-surah-divider {
-    @apply ms-auto self-end;
+    @apply self-start;
   }
 
   .ayah-day-verse-panel .verse {
@@ -163,23 +162,6 @@
     @apply text-xs text-solar-slate-300;
   }
 
-  /** Share PNG: slightly tighter type; divider must use same panel class (id stripped on clone) */
-  .share-snapshot-inner .ayah-day-verse-panel .verse {
-    @apply text-base leading-snug;
-  }
-
-  .share-snapshot-inner .ayah-day-verse-panel.urdu-style .verse {
-    @apply text-sm leading-7 sm:text-base sm:leading-8;
-  }
-
-  .share-snapshot-inner .ayah-day-verse-panel .surah {
-    @apply text-[10px] leading-snug text-slate-400;
-  }
-
-  .share-snapshot-inner .ayah-day-verse-panel .verse-surah-divider {
-    @apply my-4 h-0.5 bg-slate-400/75;
-  }
-
   .ayah-day-verse-panel .error {
     @apply text-destructive;
   }
@@ -190,5 +172,30 @@
 
   .app-dialog::backdrop {
     @apply bg-slate-950/80 backdrop-blur-sm;
+  }
+
+  /** WhatsApp share preview (capture target is inner root only) */
+  .share-preview-modal {
+    @apply fixed inset-0 z-[300] flex items-center justify-center p-4;
+  }
+
+  .share-preview-modal[hidden] {
+    display: none !important;
+  }
+
+  .share-preview-modal__backdrop {
+    @apply absolute inset-0 border-0 bg-slate-950/80 p-0 backdrop-blur-sm;
+  }
+
+  .share-preview-modal__panel {
+    @apply relative z-10 w-full max-w-md rounded-2xl border border-white/15 bg-slate-900/95 p-4 shadow-[0_18px_50px_rgba(0,0,0,0.45)] backdrop-blur-md sm:p-5;
+  }
+
+  .share-preview-capture {
+    @apply flex min-h-0 flex-col;
+  }
+
+  .share-preview-confirm {
+    @apply mt-4 inline-flex w-full items-center justify-center rounded-lg border border-transparent bg-[#075E54] px-4 py-3 text-base font-semibold text-white shadow-none outline-none transition hover:bg-[#0d8073] focus-visible:ring-2 focus-visible:ring-sky-400/50 disabled:opacity-50;
   }
 }

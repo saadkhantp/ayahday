@@ -537,13 +537,49 @@
       </footer>
     </div>
 
-    <!-- Off-screen DOM for html2canvas (logo, date, verse, controls, custom footer). -->
     <div
-      id="shareSnapshotStage"
-      class="share-snapshot-stage"
+      id="sharePreviewModal"
+      class="share-preview-modal"
+      hidden
       aria-hidden="true"
     >
-      <div id="shareSnapshotContent"></div>
+      <button
+        type="button"
+        id="sharePreviewBackdrop"
+        class="share-preview-modal__backdrop"
+        aria-label="Close share preview"
+      ></button>
+      <div
+        class="share-preview-modal__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sharePreviewDialogTitle"
+      >
+        <div class="mb-3 flex items-center justify-between gap-2">
+          <h2
+            id="sharePreviewDialogTitle"
+            class="text-sm font-semibold text-slate-200"
+          >
+            Share preview
+          </h2>
+          <button
+            type="button"
+            id="sharePreviewClose"
+            class="btn-icon h-9 w-9 shrink-0"
+            aria-label="Close"
+          >
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div id="sharePreviewCaptureRoot" class="share-preview-capture"></div>
+        <button
+          type="button"
+          id="sharePreviewConfirm"
+          class="share-preview-confirm"
+        >
+          Share Now
+        </button>
+      </div>
     </div>
 
     <script>
