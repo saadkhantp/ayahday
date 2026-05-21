@@ -96,24 +96,43 @@ module.exports = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      transitionTimingFunction: {
+        smooth: "cubic-bezier(0.22, 1, 0.36, 1)",
+        "smooth-in": "cubic-bezier(0.4, 0, 0.2, 1)",
+      },
+      transitionDuration: {
+        verse: "420ms",
+        ui: "280ms",
+      },
       keyframes: {
         fadeIn: {
           from: { opacity: "0" },
           to: { opacity: "1" },
         },
+        verseIn: {
+          from: { opacity: "0", transform: "translateY(8px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        modalIn: {
+          from: { opacity: "0", transform: "translateY(12px) scale(0.98)" },
+          to: { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
         swipeLeft: {
-          "0%": { transform: "translateX(0)" },
-          "100%": { transform: "translateX(-120%)" },
+          "0%": { transform: "translateX(0)", opacity: "1" },
+          "100%": { transform: "translateX(-22%)", opacity: "0" },
         },
         swipeRight: {
-          "0%": { transform: "translateX(0)" },
-          "100%": { transform: "translateX(120%)" },
+          "0%": { transform: "translateX(0)", opacity: "1" },
+          "100%": { transform: "translateX(22%)", opacity: "0" },
         },
       },
       animation: {
-        "fade-in": "fadeIn 0.5s ease-out",
-        "swipe-left": "swipeLeft 0.5s forwards",
-        "swipe-right": "swipeRight 0.5s forwards",
+        "fade-in": "fadeIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+        "verse-in": "verseIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+        "modal-in": "modalIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+        "swipe-left": "swipeLeft 0.65s cubic-bezier(0.4, 0, 0.2, 1) forwards",
+        "swipe-right": "swipeRight 0.65s cubic-bezier(0.4, 0, 0.2, 1) forwards",
+        "list-item-in": "verseIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards",
       },
     },
   },

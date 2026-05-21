@@ -154,8 +154,8 @@
         padding: 1.5rem;
         background: radial-gradient(circle at top, #0f172a, #020617 60%);
         transition:
-          opacity 0.4s ease,
-          visibility 0.4s ease;
+          opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+          visibility 0.55s cubic-bezier(0.22, 1, 0.36, 1);
       }
 
       #appBootOverlay.app-boot-overlay--hide {
@@ -315,6 +315,54 @@
               </span>
             </h1>
           </div>
+          <div class="header-actions element-to-hide flex shrink-0 items-center gap-3">
+            <button
+              type="button"
+              id="updatesBellBtn"
+              class="header-icon-btn"
+              aria-label="What's new"
+              title="What's new"
+            >
+              <span
+                class="material-symbols-outlined header-icon-btn__glyph"
+                aria-hidden="true"
+                >notifications</span
+              >
+            </button>
+            <div
+              id="saved-menu"
+              class="saved-menu"
+              data-open="false"
+            >
+            <button
+              type="button"
+              id="savedMenuTrigger"
+              class="saved-menu-trigger"
+              aria-haspopup="menu"
+              aria-expanded="false"
+              aria-controls="savedMenuDropdown"
+              aria-label="Your saved reflections"
+            >
+              <span
+                class="material-symbols-outlined header-icon-btn__glyph"
+                aria-hidden="true"
+                >favorite</span
+              >
+            </button>
+            <div
+              id="savedMenuDropdown"
+              class="saved-menu-dropdown"
+              role="menu"
+              aria-hidden="true"
+            >
+              <span class="saved-menu-caret" aria-hidden="true"></span>
+              <ul id="savedReflectionsList" class="saved-menu-list"></ul>
+              <p id="savedReflectionsEmpty" class="saved-menu-empty" hidden>
+                No saved ayahs yet
+              </p>
+            </div>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -335,41 +383,49 @@
           </p>
         </div>
         <div
-          id="whatsNewNotice"
-          class="element-to-hide mb-4 rounded-xl border border-cyan-300/30 bg-cyan-500/10 p-4 text-cyan-100"
-          role="status"
-          hidden
+          id="verseDisplay"
+          class="ayah-day-verse-panel glass-card mb-6 flex flex-col justify-center rounded-xl p-4 text-card-foreground ring-1 ring-solar-blue-500/25 md:p-5"
         >
-          <div class="flex items-start justify-between gap-3">
-            <div class="flex items-start gap-3">
-              <span
-                class="material-symbols-outlined whats-new-sparkle mt-0.5 shrink-0 text-3xl text-cyan-200"
-                aria-hidden="true"
-              >
-                auto_awesome
-              </span>
-              <div>
-                <p id="whatsNewTitle" class="text-base font-semibold">
-                  What's New
-                </p>
-                <div id="whatsNewMessage" class="text-cyan-100/90"></div>
-              </div>
-            </div>
+          <div id="verseContent"></div>
+          <div
+            id="versePanelFooter"
+            class="verse-panel-footer element-to-hide"
+            hidden
+          >
+            <small id="surahMeta" class="surah"></small>
             <button
               type="button"
-              id="closeWhatsNewBtn"
-              class="btn-icon h-8 w-8 border-cyan-300/40 bg-cyan-500/10 text-cyan-100 hover:bg-cyan-500/20"
-              aria-label="Close What's New"
-              title="Close What's New"
+              id="saveAyahBtn"
+              class="save-ayah-btn"
+              aria-label="Save ayah"
+              aria-pressed="false"
+              title="Save ayah"
             >
-              <i class="fa-solid fa-xmark text-sm" aria-hidden="true"></i>
+              <svg
+                class="save-ayah-btn__icon"
+                viewBox="0 0 24 24"
+                width="26"
+                height="26"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  class="save-ayah-btn__heart-outline"
+                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.75"
+                  stroke-linejoin="round"
+                />
+                <path
+                  class="save-ayah-btn__heart-filled"
+                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                  fill="currentColor"
+                />
+              </svg>
             </button>
           </div>
         </div>
-        <div
-          id="verseDisplay"
-          class="ayah-day-verse-panel glass-card mb-6 flex flex-col justify-center rounded-xl p-10 text-card-foreground ring-1 ring-solar-blue-500/25 md:p-5"
-        ></div>
         <div
           class="element-to-hide flex w-full flex-wrap items-center justify-between gap-3"
         >
@@ -600,6 +656,62 @@
         </button>
       </div>
     </div>
+
+    <div
+      id="updatesModal"
+      class="updates-modal"
+      hidden
+      aria-hidden="true"
+    >
+      <button
+        type="button"
+        id="updatesModalBackdrop"
+        class="updates-modal__backdrop"
+        aria-label="Close updates"
+      ></button>
+      <div
+        class="updates-modal__sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="updatesModalTitle"
+      >
+        <header class="updates-modal__header">
+          <h2 id="updatesModalTitle" class="updates-modal__title">
+            What's New
+          </h2>
+          <button
+            type="button"
+            id="updatesModalClose"
+            class="header-icon-btn header-icon-btn--on-panel"
+            aria-label="Close"
+          >
+            <span
+              class="material-symbols-outlined header-icon-btn__glyph"
+              aria-hidden="true"
+              >close</span
+            >
+          </button>
+        </header>
+        <div id="updatesModalCards" class="updates-modal__cards"></div>
+        <footer class="updates-modal__footer">
+          <button
+            type="button"
+            id="updatesModalGotIt"
+            class="updates-modal__got-it"
+          >
+            Got it
+          </button>
+        </footer>
+      </div>
+    </div>
+
+    <div
+      id="saveToast"
+      class="save-toast"
+      role="status"
+      aria-live="polite"
+      hidden
+    ></div>
 
     <script>
       document.getElementById("footerYear").textContent =
