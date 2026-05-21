@@ -109,6 +109,10 @@ module.exports = {
           from: { opacity: "0" },
           to: { opacity: "1" },
         },
+        cardFadeIn: {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
         verseIn: {
           from: { opacity: "0", transform: "translateY(8px)" },
           to: { opacity: "1", transform: "translateY(0)" },
@@ -125,14 +129,30 @@ module.exports = {
           "0%": { transform: "translateX(0)", opacity: "1" },
           "100%": { transform: "translateX(22%)", opacity: "0" },
         },
+        heartSavePop: {
+          "0%": { transform: "scale(1)", filter: "drop-shadow(0 0 0 transparent)" },
+          "40%": {
+            transform: "scale(1.45)",
+            filter: "drop-shadow(0 0 10px rgba(251, 113, 133, 0.65))",
+          },
+          "70%": { transform: "scale(1.1)" },
+          "100%": { transform: "scale(1)", filter: "drop-shadow(0 0 0 transparent)" },
+        },
+        savedMenuPulse: {
+          "0%, 100%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.14)" },
+        },
       },
       animation: {
         "fade-in": "fadeIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+        "card-fade-in": "cardFadeIn 0.2s ease-out forwards",
         "verse-in": "verseIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards",
         "modal-in": "modalIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards",
         "swipe-left": "swipeLeft 0.65s cubic-bezier(0.4, 0, 0.2, 1) forwards",
         "swipe-right": "swipeRight 0.65s cubic-bezier(0.4, 0, 0.2, 1) forwards",
         "list-item-in": "verseIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+        "heart-save-pop": "heartSavePop 0.55s cubic-bezier(0.22, 1, 0.36, 1)",
+        "saved-menu-pulse": "savedMenuPulse 0.6s cubic-bezier(0.22, 1, 0.36, 1) 2",
       },
     },
   },

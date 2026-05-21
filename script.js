@@ -125,8 +125,10 @@ const WHATS_NEW_RELEASES = [
 const WHATS_NEW_RELEASE_ID = WHATS_NEW_RELEASES[0].id;
 const WHATS_NEW_STORAGE_KEY = `ayahday-whats-new-dismissed-${WHATS_NEW_APP_VERSION}-${WHATS_NEW_RELEASE_ID}`;
 const SAVED_AYAHS_STORAGE_KEY = "ayahday-saved-ayahs";
+const FIRST_SAVE_HINT_STORAGE_KEY = "ayahday-first-save-hint-seen";
 const MAX_SAVED_AYAHS = 5;
 const SAVE_TOAST_MS = 3500;
+const SAVED_HINT_MS = 3200;
 
 let currentLang = normalizeLanguage(localStorage.getItem(LANGUAGE_STORAGE_KEY));
 let currentAyahNumber = getRandomAyahNumber();
@@ -154,6 +156,7 @@ const BOOT_OVERLAY_FALLBACK_MS = 3000;
 const VERSE_FADE_MS = 420;
 let bootOverlayFallbackTimer = null;
 let saveToastHideTimer = null;
+let savedHintHideTimer = null;
 let verseTransitionLock = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -422,6 +425,7 @@ function addEventListeners() {
     const savedMenu = document.getElementById("saved-menu");
     if (savedMenu && !savedMenu.contains(event.target)) {
       closeSavedMenu();
+      closeSavedHintTooltip();
     }
   });
   document.addEventListener("keydown", (event) => {
@@ -432,6 +436,7 @@ function addEventListeners() {
       return;
     }
     closeUpdatesModal();
+    closeSavedHintTooltip();
     closeSavedMenu();
     closeLanguageMenu();
   });
@@ -509,12 +514,13 @@ function syncUpdatesBellBadge() {
   bell.classList.toggle("header-icon-btn--unread", hasUnseenUpdates());
 }
 
-function renderUpdatesModalCards() {
+function renderUpdatesModalCards({ animate = true } = {}) {
   const container = document.getElementById("updatesModalCards");
   const modal = document.getElementById("updatesModal");
   if (!container || !modal) return;
 
   const rtl = isRtlEdition();
+  const shouldAnimate = animate && !prefersReducedMotion();
   container.replaceChildren();
   container.setAttribute("dir", rtl ? "rtl" : "ltr");
   if (rtl) {
@@ -523,11 +529,13 @@ function renderUpdatesModalCards() {
     container.classList.remove("font-urduUi", "leading-8");
   }
 
-  WHATS_NEW_RELEASES.forEach((release, index) => {
+  WHATS_NEW_RELEASES.forEach((release) => {
     const { title, description } = getReleaseCopy(release);
     const card = document.createElement("article");
     card.className = `updates-card updates-card--${release.theme}`;
-    card.style.animationDelay = `${index * 60}ms`;
+    if (shouldAnimate) {
+      card.classList.add("updates-card--fade-in");
+    }
 
     const iconWrap = document.createElement("div");
     iconWrap.className = "updates-card__icon";
@@ -571,7 +579,7 @@ function updateUpdatesModalChrome() {
     } else {
       modal.classList.remove("font-urduUi");
     }
-    if (!modal.hidden) renderUpdatesModalCards();
+    if (!modal.hidden) renderUpdatesModalCards({ animate: false });
   }
 }
 
@@ -1311,11 +1319,98 @@ async function viewSavedAyah(surah, ayah) {
   });
 }
 
+function hasSeenFirstSaveHint() {
+  return localStorage.getItem(FIRST_SAVE_HINT_STORAGE_KEY) === "1";
+}
+
+function markFirstSaveHintSeen() {
+  localStorage.setItem(FIRST_SAVE_HINT_STORAGE_KEY, "1");
+}
+
+function getSavedHintMessage() {
+  const locale = getWhatsNewLocale();
+  const messages = {
+    en: "Saved ayahs here",
+    ur: "محفوظ آیات یہاں",
+    ar: "الآيات هنا",
+    ms: "Ayat di sini",
+  };
+  return messages[locale] ?? messages.en;
+}
+
+function clearSavedHintTimer() {
+  if (savedHintHideTimer) {
+    clearTimeout(savedHintHideTimer);
+    savedHintHideTimer = null;
+  }
+}
+
+function closeSavedHintTooltip() {
+  const hint = document.getElementById("savedMenuHint");
+  const trigger = document.getElementById("savedMenuTrigger");
+  clearSavedHintTimer();
+  if (hint) {
+    hint.classList.remove("saved-menu-hint--open");
+    hint.setAttribute("hidden", "");
+    hint.setAttribute("aria-hidden", "true");
+  }
+  trigger?.classList.remove("saved-menu-trigger--pulse");
+}
+
+function animateSaveAyahHeart() {
+  if (prefersReducedMotion()) return;
+  const btn = document.getElementById("saveAyahBtn");
+  if (!btn) return;
+  btn.classList.remove("save-ayah-btn--pop");
+  void btn.offsetWidth;
+  btn.classList.add("save-ayah-btn--pop");
+  btn.addEventListener(
+    "animationend",
+    () => btn.classList.remove("save-ayah-btn--pop"),
+    { once: true },
+  );
+}
+
+function pulseSavedMenuTrigger() {
+  if (prefersReducedMotion()) return;
+  const trigger = document.getElementById("savedMenuTrigger");
+  if (!trigger) return;
+  trigger.classList.remove("saved-menu-trigger--pulse");
+  void trigger.offsetWidth;
+  trigger.classList.add("saved-menu-trigger--pulse");
+  trigger.addEventListener(
+    "animationend",
+    () => trigger.classList.remove("saved-menu-trigger--pulse"),
+    { once: true },
+  );
+}
+
+/** One-time pointer below the header heart after the user's first save. */
+function maybeShowFirstSaveHint() {
+  if (hasSeenFirstSaveHint()) return;
+
+  const hint = document.getElementById("savedMenuHint");
+  const trigger = document.getElementById("savedMenuTrigger");
+  if (!hint || !trigger) return;
+
+  closeSavedMenu();
+  hint.textContent = getSavedHintMessage();
+  hint.removeAttribute("hidden");
+  hint.setAttribute("aria-hidden", "false");
+  hint.classList.add("saved-menu-hint--open");
+  markFirstSaveHintSeen();
+  pulseSavedMenuTrigger();
+
+  clearSavedHintTimer();
+  savedHintHideTimer = setTimeout(closeSavedHintTooltip, SAVED_HINT_MS);
+}
+
 function openSavedMenu() {
   const menu = document.getElementById("saved-menu");
   const trigger = document.getElementById("savedMenuTrigger");
   const dropdown = document.getElementById("savedMenuDropdown");
   if (!menu || !trigger || !dropdown) return;
+  closeSavedHintTooltip();
   renderSavedReflectionsList();
   menu.dataset.open = "true";
   trigger.setAttribute("aria-expanded", "true");
@@ -1365,26 +1460,47 @@ function toggleSaveCurrentAyah() {
     return;
   }
 
+  const isFirstSave = saved.length === 0;
   saved.push({ surah: currentSurahNumber, ayah: currentAyahInSurah });
   persistSavedAyahs(saved);
   updateSaveHeartState();
+  animateSaveAyahHeart();
   renderSavedReflectionsList();
-  openSavedMenu();
+  if (isFirstSave) {
+    // Defer so the document click handler does not close the hint on the same tap.
+    window.setTimeout(() => maybeShowFirstSaveHint(), 0);
+  }
 }
 
 function initSavedAyahs() {
   const saveBtn = document.getElementById("saveAyahBtn");
   if (saveBtn) {
-    saveBtn.addEventListener("click", toggleSaveCurrentAyah);
+    saveBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      toggleSaveCurrentAyah();
+    });
   }
 
   const savedMenuTrigger = document.getElementById("savedMenuTrigger");
   if (savedMenuTrigger) {
     savedMenuTrigger.addEventListener("click", (event) => {
       event.stopPropagation();
+      closeSavedHintTooltip();
       toggleSavedMenu();
     });
   }
+
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (document.getElementById("savedMenuHint")?.classList.contains(
+        "saved-menu-hint--open",
+      )) {
+        closeSavedHintTooltip();
+      }
+    },
+    true,
+  );
 
   renderSavedReflectionsList();
 }
