@@ -131,7 +131,8 @@
    * RTL + flex-col: cross-start is inline-start (right). self-start aligns the rule
    * with the ayah/surah block; ms-auto/self-end kept it on the wrong edge.
    */
-  .ayah-day-verse-panel.urdu-style .verse-surah-divider {
+  .ayah-day-verse-panel.urdu-style .verse-surah-divider,
+  .ayah-day-verse-panel.arabic-style .verse-surah-divider {
     @apply self-start;
   }
 
@@ -152,10 +153,37 @@
     text-transform: none;
   }
 
-  .ayah-day-verse-panel.urdu-style .verse,
-  .ayah-day-verse-panel.urdu-style .surah {
+  .ayah-day-verse-panel.urdu-style .verse {
     @apply text-right;
     direction: rtl;
+  }
+
+  .ayah-day-verse-panel.urdu-style .surah {
+    @apply text-left;
+    direction: ltr;
+  }
+
+  .ayah-day-verse-panel.arabic-style {
+    @apply text-right;
+    direction: rtl;
+  }
+
+  .ayah-day-verse-panel.arabic-style .verse {
+    @apply font-urduHeader text-lg leading-8 text-solar-slate-50 sm:text-xl sm:leading-9;
+  }
+
+  .ayah-day-verse-panel.arabic-style .verse:first-letter {
+    text-transform: none;
+  }
+
+  .ayah-day-verse-panel.arabic-style .verse {
+    @apply text-right;
+    direction: rtl;
+  }
+
+  .ayah-day-verse-panel.arabic-style .surah {
+    @apply text-left;
+    direction: ltr;
   }
 
   .ayah-day-verse-panel .surah {

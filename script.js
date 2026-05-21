@@ -1,13 +1,41 @@
 const DEFAULT_LANGUAGE = "en.asad";
+const ARABIC_EDITION = "quran-uthmani";
 const LANGUAGE_STORAGE_KEY = "currentLang";
-const SUPPORTED_LANGUAGE_EDITIONS = ["en.asad", "ur.maududi", "ms.basmeih"];
+const SUPPORTED_LANGUAGE_EDITIONS = [
+  "en.asad",
+  ARABIC_EDITION,
+  "ur.maududi",
+  "ms.basmeih",
+];
 const LANGUAGE_LABELS = {
   "en.asad": "English",
+  [ARABIC_EDITION]: "Arabic",
   "ur.maududi": "Urdu",
   "ms.basmeih": "Malay",
 };
 const WHATS_NEW_APP_VERSION = "1.0.0";
-const WHATS_NEW_RELEASE_ID = "malay-language";
+/** Newest first. Bump WHATS_NEW_RELEASE_ID when adding an entry. */
+const WHATS_NEW_RELEASES = [
+  {
+    id: "arabic-language",
+    messages: {
+      en: "Added Arabic Quran text (Uthmani) in the Language menu.",
+      ur: "لینگویج مینیو میں عربی (رسم عثمانی) شامل کر دیا گیا ہے۔",
+      ar: "أضفنا القرآن بالعربية (رسم عثماني) في قائمة اللغة.",
+      ms: "Al-Quran dalam bahasa Arab (Uthmani) kini tersedia dalam menu bahasa.",
+    },
+  },
+  {
+    id: "malay-language",
+    messages: {
+      en: "Added Malay translation (ms.basmeih) in the Language menu.",
+      ur: "لینگویج مینیو میں ملے ترجمہ (ms.basmeih) شامل کر دیا گیا ہے۔",
+      ar: "أضفنا الترجمة الملايوية (ms.basmeih) في قائمة اللغة.",
+      ms: "Terjemahan Melayu (ms.basmeih) kini tersedia dalam menu bahasa.",
+    },
+  },
+];
+const WHATS_NEW_RELEASE_ID = WHATS_NEW_RELEASES[0].id;
 const WHATS_NEW_STORAGE_KEY = `ayahday-whats-new-dismissed-${WHATS_NEW_APP_VERSION}-${WHATS_NEW_RELEASE_ID}`;
 
 let currentLang = normalizeLanguage(localStorage.getItem(LANGUAGE_STORAGE_KEY));
@@ -55,10 +83,45 @@ async function fetchAndDisplayAyah(ayahNumber) {
   if (data) displayVerse(data);
 }
 
+function surahFromAyahPayload(payload) {
+  return {
+    name: payload.data.surah.name,
+    englishName: payload.data.surah.englishName,
+    englishNameTranslation: payload.data.surah.englishNameTranslation,
+    revelationType: payload.data.surah.revelationType,
+  };
+}
+
+function isArabicEdition(lang = currentLang) {
+  return lang === ARABIC_EDITION;
+}
+
+function isUrduEdition(lang = currentLang) {
+  return lang === "ur.maududi";
+}
+
+function isRtlEdition(lang = currentLang) {
+  return isUrduEdition(lang) || isArabicEdition(lang);
+}
+
 async function fetchAyah(ayahNumber) {
   try {
+    if (isArabicEdition()) {
+      const response = await fetch(
+        `${API_CONFIG.url}/${ayahNumber}/${ARABIC_EDITION}`,
+      );
+      if (!response.ok) throw new Error("Failed to fetch Ayah");
+      const payload = await response.json();
+      return {
+        data: {
+          text: payload.data.text,
+          surah: surahFromAyahPayload(payload),
+        },
+      };
+    }
+
     const arabicResponse = await fetch(
-      `${API_CONFIG.url}/${ayahNumber}/quran-uthmani`,
+      `${API_CONFIG.url}/${ayahNumber}/${ARABIC_EDITION}`,
     );
 
     const translationResponse = await fetch(
@@ -74,12 +137,7 @@ async function fetchAyah(ayahNumber) {
     return {
       data: {
         text: translationData.data.text,
-        surah: {
-          name: arabicData.data.surah.name,
-          englishName: arabicData.data.surah.englishName,
-          englishNameTranslation: arabicData.data.surah.englishNameTranslation,
-          revelationType: arabicData.data.surah.revelationType,
-        },
+        surah: surahFromAyahPayload(arabicData),
       },
     };
   } catch (error) {
@@ -197,27 +255,33 @@ function initLanguageSelect() {
   syncLanguageMenuUI();
 }
 
+function getWhatsNewLocale() {
+  if (isArabicEdition()) return "ar";
+  if (isUrduEdition()) return "ur";
+  if (currentLang === "ms.basmeih") return "ms";
+  return "en";
+}
+
 function getWhatsNewCopy() {
-  if (currentLang === "ur.maududi") {
-    return {
-      title: "نیا کیا ہے",
-      message:
-        "نیا: لینگویج مینیو میں ملے ترجمہ (ms.basmeih) شامل کر دیا گیا ہے۔",
-      close: "بند کریں",
-    };
-  }
-  if (currentLang === "ms.basmeih") {
-    return {
-      title: "Apa Baharu",
-      message:
-        "Baharu: Terjemahan Melayu (ms.basmeih) kini tersedia dalam menu bahasa.",
-      close: "Tutup",
-    };
-  }
+  const locale = getWhatsNewLocale();
+  const titles = {
+    en: "What's New",
+    ur: "نیا کیا ہے",
+    ar: "ما الجديد",
+    ms: "Apa Baharu",
+  };
+  const closes = {
+    en: "Close",
+    ur: "بند کریں",
+    ar: "إغلاق",
+    ms: "Tutup",
+  };
   return {
-    title: "What's New",
-    message: "New: Added Malay translation (ms.basmeih) in Language menu.",
-    close: "Close",
+    title: titles[locale],
+    items: WHATS_NEW_RELEASES.map(
+      (release) => release.messages[locale] ?? release.messages.en,
+    ),
+    close: closes[locale],
   };
 }
 
@@ -245,11 +309,20 @@ function updateWhatsNewNoticeCopy() {
 
   const copy = getWhatsNewCopy();
   titleEl.textContent = copy.title;
-  messageEl.textContent = copy.message;
+  messageEl.replaceChildren();
+  const list = document.createElement("ul");
+  list.className =
+    "mt-1 list-disc space-y-1 ps-4 text-sm text-cyan-100/90 marker:text-cyan-200/80";
+  copy.items.forEach((text) => {
+    const item = document.createElement("li");
+    item.textContent = text;
+    list.appendChild(item);
+  });
+  messageEl.appendChild(list);
   closeBtn.setAttribute("aria-label", copy.close);
   closeBtn.setAttribute("title", copy.close);
 
-  if (currentLang === "ur.maududi") {
+  if (isRtlEdition()) {
     whatsNewNotice.classList.add("font-urduUi", "leading-8");
     whatsNewNotice.setAttribute("dir", "rtl");
   } else {
@@ -472,11 +545,13 @@ function closeSharePreview() {
 
 function fillSharePreviewCaptureRoot(root) {
   root.replaceChildren();
-  const isUrdu = currentLang === "ur.maududi";
+  const rtl = isRtlEdition();
+  const isUrdu = isUrduEdition();
+  const isArabic = isArabicEdition();
   root.className =
     "share-preview-capture rounded-lg bg-[#020617] p-4 sm:p-5 " +
-    (isUrdu ? "text-right" : "text-left");
-  root.setAttribute("dir", isUrdu ? "rtl" : "ltr");
+    (rtl ? "text-right" : "text-left");
+  root.setAttribute("dir", rtl ? "rtl" : "ltr");
 
   const versePanel = document.getElementById("verseDisplay");
   const verseEl = versePanel?.querySelector(".verse");
@@ -496,9 +571,10 @@ function fillSharePreviewCaptureRoot(root) {
     root.appendChild(err);
   } else {
     const ayah = document.createElement("p");
-    ayah.className = isUrdu
-      ? "font-urduHeader mt-3 text-base font-bold leading-7 text-slate-100 sm:text-lg"
-      : "mt-3 text-base font-bold leading-snug text-slate-100 first-letter:uppercase sm:text-lg";
+    ayah.className =
+      isUrdu || isArabic
+        ? "font-urduHeader mt-3 text-base font-bold leading-7 text-slate-100 sm:text-lg"
+        : "mt-3 text-base font-bold leading-snug text-slate-100 first-letter:uppercase sm:text-lg";
     ayah.textContent = verseEl?.textContent ?? "";
 
     const divider = document.createElement("div");
@@ -510,7 +586,7 @@ function fillSharePreviewCaptureRoot(root) {
       marginBottom: "1rem",
       borderRadius: "9999px",
       background: "rgba(148, 163, 184, 0.85)",
-      alignSelf: "flex-start",
+      alignSelf: rtl ? "flex-start" : "flex-start",
     });
 
     const surah = document.createElement("div");
@@ -689,18 +765,20 @@ function updateLanguageDisplay() {
   } = getShareTooltipEls();
   closeShareTooltip();
   syncLanguageMenuUI();
-  const isUrdu = currentLang === "ur.maududi";
-  const isMalay = currentLang === "ms.basmeih";
 
-  if (isUrdu) {
+  verseDisplay.classList.remove("urdu-style", "arabic-style");
+
+  if (isUrduEdition()) {
     verseDisplay.classList.add("urdu-style");
     verseDisplay.setAttribute("dir", "rtl");
     document.documentElement.lang = "ur-PK";
-    document.documentElement.dir = "rtl";
+    document.documentElement.dir = "ltr";
     if (tagline) {
       tagline.className =
         "element-to-hide mt-0.5 font-urduHeader text-sm font-medium leading-8 text-solar-gold";
-      tagline.textContent = "انگریزی، اردو اور مالے میں روزانہ کی آیات";
+      tagline.setAttribute("dir", "rtl");
+      tagline.textContent =
+        "انگریزی، عربی، اردو اور مالے میں روزانہ کی آیات";
     }
     if (shareTooltipLabel) {
       shareTooltipLabel.textContent = "واٹس ایپ پر شیئر کریں";
@@ -716,14 +794,42 @@ function updateLanguageDisplay() {
     return;
   }
 
-  verseDisplay.classList.remove("urdu-style");
+  if (isArabicEdition()) {
+    verseDisplay.classList.add("arabic-style");
+    verseDisplay.setAttribute("dir", "rtl");
+    document.documentElement.lang = "ar";
+    document.documentElement.dir = "ltr";
+    if (tagline) {
+      tagline.className =
+        "element-to-hide mt-0.5 font-urduHeader text-sm font-medium leading-8 text-solar-gold";
+      tagline.setAttribute("dir", "rtl");
+      tagline.textContent =
+        "آيات قرآنية يومية بالعربية والإنجليزية والأردية والملايو";
+    }
+    if (shareTooltipLabel) {
+      shareTooltipLabel.textContent = "شارك على واتساب";
+    }
+    if (shareBtn) {
+      shareBtn.setAttribute("aria-label", "شارك على واتساب");
+    }
+    if (shareTooltip) {
+      shareTooltip.classList.add("font-urduUi", "leading-7");
+      shareTooltip.setAttribute("dir", "rtl");
+    }
+    updateWhatsNewNoticeCopy();
+    return;
+  }
+
+  const isMalay = currentLang === "ms.basmeih";
   verseDisplay.setAttribute("dir", "ltr");
   document.documentElement.lang = isMalay ? "ms-MY" : "en-PK";
   document.documentElement.dir = "ltr";
   if (tagline) {
     tagline.className =
       "element-to-hide mt-0.5 text-xs font-medium text-solar-gold";
-    tagline.textContent = "Daily Quranic verses in English, Urdu & Malay";
+    tagline.removeAttribute("dir");
+    tagline.textContent =
+      "Daily Quranic verses in English, Arabic, Urdu & Malay";
   }
   if (shareTooltipLabel) {
     shareTooltipLabel.textContent = "Share on WhatsApp";
