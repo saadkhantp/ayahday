@@ -9,6 +9,8 @@ module.exports = {
     "./faq/index.html",
     "./ur/faq/index.html",
     "./*.js",
+    "./theme.js",
+    "./theme-init.js",
   ],
   theme: {
     extend: {

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html lang="en-PK" class="dark">
+<html lang="en-PK">
   <head>
+    <script src="../theme-init.js"></script>
     <meta charset="UTF-8" />
     <meta
       name="viewport"
@@ -25,7 +26,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap"
       rel="stylesheet"
     />
     <link
@@ -157,24 +158,22 @@
       gtag("config", "G-72MT997T35");
     </script>
   </head>
-  <body
-    class="min-h-screen bg-[radial-gradient(circle_at_top,_#0f172a,_#020617_60%)] p-4 md:p-8"
-  >
+  <body class="app-body min-h-screen p-4 md:p-8">
     <div class="theme mx-auto max-w-7xl">
       <header class="mb-8">
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0">
             <h1 class="logo font-logo text-2xl sm:text-3xl">
-              <a href="../" class="text-gradient-solar tracking-tight">AyahDay</a>
+              <a href="../" class="font-logo text-gradient-solar tracking-tight">AyahDay</a>
             </h1>
-            <p class="mt-0.5 text-xs font-medium text-solar-gold/95">
-              Daily Quranic verses in English, Arabic, Urdu &amp; Malay
+            <p class="app-tagline mt-0.5 text-xs font-medium">
+              Daily Quranic Verses
             </p>
           </div>
           <div class="flex shrink-0 flex-wrap items-start justify-end gap-2">
             <a
               href="../ur/faq/"
-              class="rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-normal text-cyan-100 transition hover:bg-white/10 font-urduUi leading-7"
+              class="rounded-full border border-slate-300/60 bg-white/70 px-4 py-2 text-sm font-normal text-cyan-800 transition hover:bg-white font-urduUi leading-7 dark:border-white/20 dark:bg-white/5 dark:text-cyan-100 dark:hover:bg-white/10"
               >اردو</a
             >
           </div>
@@ -184,10 +183,10 @@
       <div class="glass-card rounded-xl ring-1 ring-solar-blue-500/25">
         <div class="p-4 md:p-8">
           <header class="mb-8 space-y-2">
-            <h1 class="text-lg font-semibold text-slate-100 md:text-xl">
+            <h1 class="text-lg font-semibold text-slate-900 dark:text-slate-100 md:text-xl">
               Frequently asked questions
             </h1>
-            <p class="max-w-3xl text-xs leading-relaxed text-slate-400 md:text-sm">
+            <p class="max-w-3xl text-xs leading-relaxed text-slate-600 dark:text-slate-400 md:text-sm">
               Daily Quran verses in English, Arabic, Urdu, and Malay: translations,
               language selector, sharing, data source, and how AyahDay works -
               in plain language.
@@ -196,9 +195,9 @@
 
           <ul class="list-none space-y-4 p-0">
             <li>
-              <details class="group rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
+              <details class="group rounded-xl border border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] backdrop-blur-sm">
                 <summary
-                  class="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-100 marker:hidden [&::-webkit-details-marker]:hidden"
+                  class="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-900 dark:text-slate-100 marker:hidden [&::-webkit-details-marker]:hidden"
                 >
                   <span class="min-w-0 flex-1">What is AyahDay?</span>
                   <span
@@ -208,7 +207,7 @@
                   >
                 </summary>
                 <div
-                  class="border-t border-white/10 px-4 pb-4 pt-3 text-xs leading-relaxed text-slate-400 md:text-[13px]"
+                  class="border-t border-slate-200/80 dark:border-white/10 px-4 pb-4 pt-3 text-xs leading-relaxed text-slate-600 dark:text-slate-400 md:text-[13px]"
                 >
                   <p>
                     AyahDay is a free web app for daily Quranic reflection. It
@@ -219,9 +218,9 @@
               </details>
             </li>
             <li>
-              <details class="group rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
+              <details class="group rounded-xl border border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] backdrop-blur-sm">
                 <summary
-                  class="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-100 marker:hidden [&::-webkit-details-marker]:hidden"
+                  class="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-900 dark:text-slate-100 marker:hidden [&::-webkit-details-marker]:hidden"
                 >
                   <span class="min-w-0 flex-1"
                     >Which translations does AyahDay use?</span
@@ -233,7 +232,7 @@
                   >
                 </summary>
                 <div
-                  class="border-t border-white/10 px-4 pb-4 pt-3 text-xs leading-relaxed text-slate-400 md:text-[13px]"
+                  class="border-t border-slate-200/80 dark:border-white/10 px-4 pb-4 pt-3 text-xs leading-relaxed text-slate-600 dark:text-slate-400 md:text-[13px]"
                 >
                   <p>
                     English uses Muhammad Asad (en.asad). Arabic uses Uthmani
@@ -245,9 +244,9 @@
               </details>
             </li>
             <li>
-              <details class="group rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
+              <details class="group rounded-xl border border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] backdrop-blur-sm">
                 <summary
-                  class="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-100 marker:hidden [&::-webkit-details-marker]:hidden"
+                  class="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-900 dark:text-slate-100 marker:hidden [&::-webkit-details-marker]:hidden"
                 >
                   <span class="min-w-0 flex-1"
                     >How do I change the translation language?</span
@@ -259,7 +258,7 @@
                   >
                 </summary>
                 <div
-                  class="border-t border-white/10 px-4 pb-4 pt-3 text-xs leading-relaxed text-slate-400 md:text-[13px]"
+                  class="border-t border-slate-200/80 dark:border-white/10 px-4 pb-4 pt-3 text-xs leading-relaxed text-slate-600 dark:text-slate-400 md:text-[13px]"
                 >
                   <p>
                     Use the language selector below the ayah card on the right
@@ -270,9 +269,9 @@
               </details>
             </li>
             <li>
-              <details class="group rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
+              <details class="group rounded-xl border border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] backdrop-blur-sm">
                 <summary
-                  class="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-100 marker:hidden [&::-webkit-details-marker]:hidden"
+                  class="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-900 dark:text-slate-100 marker:hidden [&::-webkit-details-marker]:hidden"
                 >
                   <span class="min-w-0 flex-1"
                     >Is AyahDay free? Do I need an account?</span
@@ -284,16 +283,16 @@
                   >
                 </summary>
                 <div
-                  class="border-t border-white/10 px-4 pb-4 pt-3 text-xs leading-relaxed text-slate-400 md:text-[13px]"
+                  class="border-t border-slate-200/80 dark:border-white/10 px-4 pb-4 pt-3 text-xs leading-relaxed text-slate-600 dark:text-slate-400 md:text-[13px]"
                 >
                   <p>AyahDay is free and does not require an account.</p>
                 </div>
               </details>
             </li>
             <li>
-              <details class="group rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
+              <details class="group rounded-xl border border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] backdrop-blur-sm">
                 <summary
-                  class="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-100 marker:hidden [&::-webkit-details-marker]:hidden"
+                  class="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-900 dark:text-slate-100 marker:hidden [&::-webkit-details-marker]:hidden"
                 >
                   <span class="min-w-0 flex-1"
                     >Where does the verse text come from?</span
@@ -305,7 +304,7 @@
                   >
                 </summary>
                 <div
-                  class="border-t border-white/10 px-4 pb-4 pt-3 text-xs leading-relaxed text-slate-400 md:text-[13px]"
+                  class="border-t border-slate-200/80 dark:border-white/10 px-4 pb-4 pt-3 text-xs leading-relaxed text-slate-600 dark:text-slate-400 md:text-[13px]"
                 >
                   <p>
                     Verses are loaded from the public Al Quran Cloud API using
@@ -315,9 +314,9 @@
               </details>
             </li>
             <li>
-              <details class="group rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
+              <details class="group rounded-xl border border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] backdrop-blur-sm">
                 <summary
-                  class="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-100 marker:hidden [&::-webkit-details-marker]:hidden"
+                  class="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-900 dark:text-slate-100 marker:hidden [&::-webkit-details-marker]:hidden"
                 >
                   <span class="min-w-0 flex-1">How do I share a verse?</span>
                   <span
@@ -327,7 +326,7 @@
                   >
                 </summary>
                 <div
-                  class="border-t border-white/10 px-4 pb-4 pt-3 text-xs leading-relaxed text-slate-400 md:text-[13px]"
+                  class="border-t border-slate-200/80 dark:border-white/10 px-4 pb-4 pt-3 text-xs leading-relaxed text-slate-600 dark:text-slate-400 md:text-[13px]"
                 >
                   <p>
                     Tap the share button to open WhatsApp with the current
@@ -337,9 +336,9 @@
               </details>
             </li>
             <li>
-              <details class="group rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
+              <details class="group rounded-xl border border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] backdrop-blur-sm">
                 <summary
-                  class="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-100 marker:hidden [&::-webkit-details-marker]:hidden"
+                  class="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-900 dark:text-slate-100 marker:hidden [&::-webkit-details-marker]:hidden"
                 >
                   <span class="min-w-0 flex-1"
                     >Can I see a verse I viewed before?</span
@@ -351,7 +350,7 @@
                   >
                 </summary>
                 <div
-                  class="border-t border-white/10 px-4 pb-4 pt-3 text-xs leading-relaxed text-slate-400 md:text-[13px]"
+                  class="border-t border-slate-200/80 dark:border-white/10 px-4 pb-4 pt-3 text-xs leading-relaxed text-slate-600 dark:text-slate-400 md:text-[13px]"
                 >
                   <p>
                     Use the back control after moving forward. The app keeps a
@@ -361,9 +360,9 @@
               </details>
             </li>
             <li>
-              <details class="group rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
+              <details class="group rounded-xl border border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] backdrop-blur-sm">
                 <summary
-                  class="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-100 marker:hidden [&::-webkit-details-marker]:hidden"
+                  class="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-900 dark:text-slate-100 marker:hidden [&::-webkit-details-marker]:hidden"
                 >
                   <span class="min-w-0 flex-1"
                     >Does AyahDay show Arabic script for every verse?</span
@@ -375,7 +374,7 @@
                   >
                 </summary>
                 <div
-                  class="border-t border-white/10 px-4 pb-4 pt-3 text-xs leading-relaxed text-slate-400 md:text-[13px]"
+                  class="border-t border-slate-200/80 dark:border-white/10 px-4 pb-4 pt-3 text-xs leading-relaxed text-slate-600 dark:text-slate-400 md:text-[13px]"
                 >
                   <p>
                     Choose Arabic in the language menu to read the ayah in
@@ -386,9 +385,9 @@
               </details>
             </li>
             <li>
-              <details class="group rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
+              <details class="group rounded-xl border border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-white/[0.03] backdrop-blur-sm">
                 <summary
-                  class="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-100 marker:hidden [&::-webkit-details-marker]:hidden"
+                  class="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-900 dark:text-slate-100 marker:hidden [&::-webkit-details-marker]:hidden"
                 >
                   <span class="min-w-0 flex-1"
                     >Is AyahDay religious advice or fiqh?</span
@@ -400,7 +399,7 @@
                   >
                 </summary>
                 <div
-                  class="border-t border-white/10 px-4 pb-4 pt-3 text-xs leading-relaxed text-slate-400 md:text-[13px]"
+                  class="border-t border-slate-200/80 dark:border-white/10 px-4 pb-4 pt-3 text-xs leading-relaxed text-slate-600 dark:text-slate-400 md:text-[13px]"
                 >
                   <p>
                     No. AyahDay is for reflection only. For rulings or deep

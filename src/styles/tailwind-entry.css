@@ -38,15 +38,29 @@
     @apply text-foreground antialiased;
     font-family: "Mulish", sans-serif;
   }
+
+  .app-body {
+    background: radial-gradient(
+      circle at top,
+      hsl(var(--app-bg-top)),
+      hsl(var(--app-bg-bottom)) 60%
+    );
+  }
 }
 
 @layer utilities {
   .glass-card {
-    @apply border border-solar-blue-500/20 bg-white/5 shadow-[0_10px_30px_rgba(0,0,0,0.25)] backdrop-blur-md;
+    @apply border border-solar-blue-500/25 bg-white/85 shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur-md dark:border-solar-blue-500/20 dark:bg-white/5 dark:shadow-[0_10px_30px_rgba(0,0,0,0.25)];
   }
 
   .font-logo {
     font-family: "Mulish", sans-serif;
+    font-weight: 1000;
+    font-variation-settings: "wght" 1000;
+  }
+
+  .app-tagline {
+    @apply text-slate-500 dark:text-solar-gold;
   }
 
   .text-shadow-sm {
@@ -72,11 +86,11 @@
 
 @layer components {
   .footer-link {
-    @apply cursor-pointer border-0 bg-transparent text-sm text-slate-300 underline underline-offset-2 transition hover:text-cyan-200;
+    @apply cursor-pointer border-0 bg-transparent text-sm text-slate-600 underline underline-offset-2 transition hover:text-cyan-700 dark:text-slate-300 dark:hover:text-cyan-200;
   }
 
   .btn-header-lang {
-    @apply inline-flex items-center justify-center rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold text-cyan-100 transition hover:bg-white/10;
+    @apply inline-flex items-center justify-center rounded-full border border-slate-300/60 bg-white/70 px-4 py-2 text-sm font-semibold text-cyan-800 transition hover:bg-white dark:border-white/20 dark:bg-white/5 dark:text-cyan-100 dark:hover:bg-white/10;
   }
 
   .btn-header-lang .lang-label-ur {
@@ -104,37 +118,26 @@
     @apply visible opacity-100;
   }
 
-  /** Green → blue like before; gold (#FFB834) only in the last ~10% for a warm hint on the right */
+  /** Brand logo: #00B0FF → #008AC8; #09DD97 accent at bottom-right only */
   .text-gradient-solar {
-    @apply bg-clip-text font-extrabold text-transparent;
-    background-image: linear-gradient(
-      90deg,
-      theme('colors.solar.green.400') 0%,
-      theme('colors.solar.blue.400') 68%,
-      theme('colors.solar.blue.400') 90%,
-      #ffb834 100%
-    );
-  }
-
-  /** Mirror gradient for RTL so the warm hint sits on the “start” side visually */
-  :root[dir="rtl"] .text-gradient-solar {
-    background-image: linear-gradient(
-      270deg,
-      theme('colors.solar.green.400') 0%,
-      theme('colors.solar.blue.400') 68%,
-      theme('colors.solar.blue.400') 90%,
-      #ffb834 100%
-    );
+    @apply bg-clip-text text-transparent;
+    background-image:
+      radial-gradient(
+        ellipse 26% 36% at 100% 100%,
+        #09dd97 0%,
+        transparent 68%
+      ),
+      linear-gradient(112deg, #00b0ff 0%, #008ac8 82%);
   }
 
   .ayah-day-verse-panel .verse,
   .ayah-day-verse-panel .surah {
-    @apply relative z-[9] text-left text-shadow-sm;
+    @apply relative z-[9] text-left;
   }
 
   /** Real element (not ::before) so snapshots/html2canvas keep ayah ↔ surah spacing */
   .ayah-day-verse-panel .verse-surah-divider {
-    @apply my-5 block h-0.5 w-[100px] max-w-full shrink-0 self-start rounded-full bg-slate-400/70;
+    @apply my-5 block h-0.5 w-[100px] max-w-full shrink-0 self-start rounded-full bg-slate-400/80 dark:bg-slate-400/70;
   }
 
   /**
@@ -147,7 +150,7 @@
   }
 
   .ayah-day-verse-panel .verse {
-    @apply mb-0 text-xl font-bold leading-snug text-solar-slate-50 first-letter:uppercase;
+    @apply mb-0 text-xl font-bold leading-snug text-slate-800 first-letter:uppercase dark:text-solar-slate-50;
   }
 
   .ayah-day-verse-panel.urdu-style {
@@ -156,7 +159,7 @@
   }
 
   .ayah-day-verse-panel.urdu-style .verse {
-    @apply font-urduHeader text-lg leading-8 text-solar-slate-50 sm:text-xl sm:leading-9;
+    @apply font-urduHeader text-lg leading-8 text-slate-800 sm:text-xl sm:leading-9 dark:text-solar-slate-50;
   }
 
   .ayah-day-verse-panel.urdu-style .verse:first-letter {
@@ -179,7 +182,7 @@
   }
 
   .ayah-day-verse-panel.arabic-style .verse {
-    @apply font-urduHeader text-lg leading-8 text-solar-slate-50 sm:text-xl sm:leading-9;
+    @apply font-urduHeader text-lg leading-8 text-slate-800 sm:text-xl sm:leading-9 dark:text-solar-slate-50;
   }
 
   .ayah-day-verse-panel.arabic-style .verse:first-letter {
@@ -197,7 +200,7 @@
   }
 
   .ayah-day-verse-panel .surah {
-    @apply text-xs text-solar-slate-300;
+    @apply text-xs text-slate-500 dark:text-solar-slate-300;
   }
 
   .ayah-day-verse-panel .error {
@@ -230,11 +233,11 @@
   }
 
   .app-dialog {
-    @apply w-[min(100vw-1.5rem,42rem)] max-h-[min(90vh,100%)] overflow-y-auto rounded-2xl border border-white/15 bg-card p-0 text-card-foreground shadow-[0_18px_50px_rgba(0,0,0,0.45)];
+    @apply w-[min(100vw-1.5rem,42rem)] max-h-[min(90vh,100%)] overflow-y-auto rounded-2xl border border-slate-200/80 bg-card p-0 text-card-foreground shadow-[0_18px_50px_rgba(15,23,42,0.12)] dark:border-white/15 dark:shadow-[0_18px_50px_rgba(0,0,0,0.45)];
   }
 
   .app-dialog::backdrop {
-    @apply bg-slate-950/80 backdrop-blur-sm;
+    @apply bg-slate-900/40 backdrop-blur-sm dark:bg-slate-950/80;
   }
 
   /** WhatsApp share preview (capture target is inner root only) */
@@ -251,7 +254,7 @@
   }
 
   .share-preview-modal__backdrop {
-    @apply absolute inset-0 border-0 bg-slate-950/80 p-0 backdrop-blur-sm;
+    @apply absolute inset-0 border-0 bg-slate-900/40 p-0 backdrop-blur-sm dark:bg-slate-950/80;
   }
 
   .share-preview-modal:not([hidden]) .share-preview-modal__panel {
@@ -259,7 +262,7 @@
   }
 
   .share-preview-modal__panel {
-    @apply relative z-10 w-full max-w-md rounded-2xl border border-white/15 bg-slate-900/95 p-4 shadow-[0_18px_50px_rgba(0,0,0,0.45)] backdrop-blur-md sm:p-5;
+    @apply relative z-10 w-full max-w-md rounded-2xl border border-slate-200/80 bg-white/95 p-4 shadow-[0_18px_50px_rgba(15,23,42,0.12)] backdrop-blur-md sm:p-5 dark:border-white/15 dark:bg-slate-900/95 dark:shadow-[0_18px_50px_rgba(0,0,0,0.45)];
   }
 
   .share-preview-capture {
@@ -311,32 +314,40 @@
 
   /** Header: bell (updates) + saved heart */
   .header-actions {
-    @apply items-center gap-3 overflow-visible;
+    @apply items-center gap-2.5 overflow-visible;
+  }
+
+  .header-icon-wrap {
+    @apply relative inline-flex shrink-0;
   }
 
   .header-icon-btn {
-    @apply relative inline-flex size-9 shrink-0 items-center justify-center border-0 bg-transparent p-0 text-slate-300/90 transition-[color,opacity,transform] duration-ui ease-smooth hover:scale-105 hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/40;
+    @apply relative inline-flex size-7 shrink-0 items-center justify-center border-0 bg-transparent p-0 text-slate-600 transition-[color,opacity,transform] duration-ui ease-smooth hover:scale-105 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40 dark:text-slate-300/90 dark:hover:text-slate-100 dark:focus-visible:ring-sky-400/40;
   }
 
   .header-icon-btn__glyph {
-    @apply text-[1.35rem] leading-none;
+    @apply text-[1.125rem] leading-none;
     font-variation-settings:
       "FILL" 1,
       "wght" 400,
       "GRAD" 0,
-      "opsz" 24;
+      "opsz" 20;
   }
 
   .header-icon-btn--on-panel {
-    @apply text-slate-300 hover:text-white;
+    @apply text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white;
+  }
+
+  .header-icon-btn--pulse {
+    @apply animate-saved-menu-pulse;
   }
 
   /** Green dot when unseen updates exist */
   .header-icon-btn--unread::after {
     content: "";
-    @apply absolute size-2 rounded-full bg-emerald-400 ring-2 ring-slate-950;
-    inset-inline-end: 0.4rem;
-    top: 0.25rem;
+    @apply absolute size-1.5 rounded-full bg-emerald-500 ring-2 ring-white dark:bg-emerald-400 dark:ring-slate-950;
+    inset-inline-end: 0.2rem;
+    top: 0.15rem;
   }
 
   /** Header saved reflections menu */
@@ -345,7 +356,7 @@
   }
 
   .saved-menu-trigger {
-    @apply inline-flex size-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 text-rose-300/95 shadow-none backdrop-blur-sm transition-[colors,background-color,border-color,transform] duration-ui ease-smooth hover:border-rose-300/35 hover:bg-rose-500/15 hover:text-rose-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300/40;
+    @apply inline-flex size-9 items-center justify-center rounded-lg border border-rose-200/80 bg-rose-50/90 text-rose-600 shadow-none backdrop-blur-sm transition-[colors,background-color,border-color,transform] duration-ui ease-smooth hover:border-rose-300/60 hover:bg-rose-100 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/50 dark:border-white/15 dark:bg-white/10 dark:text-rose-300/95 dark:hover:border-rose-300/35 dark:hover:bg-rose-500/15 dark:hover:text-rose-200 dark:focus-visible:ring-rose-300/40;
   }
 
   .saved-menu-trigger .header-icon-btn__glyph {
@@ -360,30 +371,60 @@
     @apply animate-saved-menu-pulse;
   }
 
-  /** One-time pointer below header heart (first save only) */
-  .saved-menu-hint {
-    @apply pointer-events-none absolute right-0 top-[calc(100%+0.4rem)] z-[60] w-max max-w-[10rem] whitespace-nowrap rounded-md border border-rose-300/30 bg-slate-900/95 px-2 py-1 text-center text-[10px] font-medium leading-tight text-rose-100/95 opacity-0 shadow-md backdrop-blur-sm transition-[opacity,transform] duration-200 ease-smooth;
+  /** Header icon tooltips (onboarding wizard + saved menu) */
+  .header-tooltip {
+    @apply pointer-events-none absolute right-0 top-[calc(100%+0.4rem)] z-[60] w-max max-w-[10rem] whitespace-nowrap rounded-md border bg-white/95 px-2 py-1 text-center text-[10px] font-medium leading-tight opacity-0 shadow-md backdrop-blur-sm transition-[opacity,transform,visibility] duration-300 ease-smooth dark:bg-slate-900/95;
     transform: translateY(-3px);
     visibility: hidden;
   }
 
-  .saved-menu-hint::before {
+  .header-tooltip::before {
     content: "";
-    @apply absolute -top-1 right-3 block size-2 rotate-45 border-l border-t border-rose-300/30 bg-slate-900/95;
+    @apply absolute -top-1 right-3 z-[1] block size-2 rotate-45 border-l border-t bg-white/95 dark:bg-slate-900/95;
   }
 
-  .saved-menu-hint--open {
+  /** Gold dot centered above the caret (not overlapping the diamond) */
+  .header-tooltip::after {
+    content: "";
+    @apply absolute right-[0.8125rem] top-0 z-[2] block size-1.5 -translate-y-[calc(100%+0.625rem)] rounded-full bg-solar-gold;
+  }
+
+  .header-tooltip--bell {
+    @apply border-cyan-200/80 text-cyan-800 dark:border-cyan-400/30 dark:text-cyan-100/95;
+  }
+
+  .header-tooltip--bell::before {
+    @apply border-cyan-200/80 dark:border-cyan-400/30;
+  }
+
+  .header-tooltip--theme {
+    @apply border-slate-200/80 text-slate-700 dark:border-slate-500/40 dark:text-slate-200;
+  }
+
+  .header-tooltip--theme::before {
+    @apply border-slate-200/80 dark:border-slate-500/40;
+  }
+
+  .header-tooltip--saved {
+    @apply border-rose-200/80 text-rose-800 dark:border-rose-300/30 dark:text-rose-100/95;
+  }
+
+  .header-tooltip--saved::before {
+    @apply border-rose-200/80 dark:border-rose-300/30;
+  }
+
+  .header-tooltip--open {
     @apply opacity-100;
     transform: translateY(0);
     visibility: visible;
   }
 
-  .saved-menu-hint[hidden] {
+  .header-tooltip[hidden] {
     display: none !important;
   }
 
   .saved-menu-dropdown {
-    @apply pointer-events-none invisible absolute right-0 top-[calc(100%+0.65rem)] z-50 w-[min(18rem,calc(100vw-1.5rem))] min-w-[16.5rem] origin-top-right rounded-xl border border-white/15 bg-slate-900/95 px-1 py-2 opacity-0 shadow-[0_12px_36px_rgba(2,6,23,0.45)] backdrop-blur-md transition-[opacity,visibility,transform] duration-300 ease-smooth;
+    @apply pointer-events-none invisible absolute right-0 top-[calc(100%+0.65rem)] z-50 w-[min(18rem,calc(100vw-1.5rem))] min-w-[16.5rem] origin-top-right rounded-xl border border-slate-200/80 bg-white/95 px-1 py-2 opacity-0 shadow-[0_12px_36px_rgba(15,23,42,0.12)] backdrop-blur-md transition-[opacity,visibility,transform] duration-300 ease-smooth dark:border-white/15 dark:bg-slate-900/95 dark:shadow-[0_12px_36px_rgba(2,6,23,0.45)];
     transform: translateY(-6px) scale(0.98);
   }
 
@@ -393,7 +434,7 @@
   }
 
   .saved-menu-caret {
-    @apply absolute -top-1.5 right-3.5 block size-2.5 rotate-45 border-l border-t border-white/15 bg-slate-900/95;
+    @apply absolute -top-1.5 right-3.5 block size-2.5 rotate-45 border-l border-t border-slate-200/80 bg-white/95 dark:border-white/15 dark:bg-slate-900/95;
   }
 
   .saved-menu-list {
@@ -409,7 +450,7 @@
   }
 
   .saved-menu-item {
-    @apply flex items-center gap-1.5 rounded-lg border border-transparent transition-[colors,background-color,border-color] duration-ui ease-smooth hover:border-white/10 hover:bg-white/5;
+    @apply flex items-center gap-1.5 rounded-lg border border-transparent transition-[colors,background-color,border-color] duration-ui ease-smooth hover:border-slate-200/80 hover:bg-slate-50 dark:hover:border-white/10 dark:hover:bg-white/5;
   }
 
   .saved-menu-item--enter {
@@ -417,16 +458,16 @@
   }
 
   .saved-menu-item__view {
-    @apply min-w-0 flex-1 cursor-pointer border-0 bg-transparent px-4 py-2.5 text-left text-sm leading-snug text-slate-200 transition hover:text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/40;
+    @apply min-w-0 flex-1 cursor-pointer border-0 bg-transparent px-4 py-2.5 text-left text-sm leading-snug text-slate-700 transition hover:text-cyan-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40 dark:text-slate-200 dark:hover:text-cyan-100 dark:focus-visible:ring-sky-400/40;
   }
 
   .saved-menu-item__remove {
-    @apply me-2 inline-flex size-7 shrink-0 items-center justify-center rounded-md border-0 bg-transparent text-slate-500 transition hover:bg-white/10 hover:text-rose-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300/40;
+    @apply me-2 inline-flex size-7 shrink-0 items-center justify-center rounded-md border-0 bg-transparent text-slate-400 transition hover:bg-slate-100 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/50 dark:text-slate-500 dark:hover:bg-white/10 dark:hover:text-rose-300 dark:focus-visible:ring-rose-300/40;
   }
 
   /** Limit-reached toast */
   .save-toast {
-    @apply pointer-events-none fixed bottom-6 left-1/2 z-[400] max-w-[min(20rem,calc(100vw-2rem))] -translate-x-1/2 rounded-lg border border-white/15 bg-slate-900/95 px-4 py-2.5 text-center text-sm text-slate-100 shadow-lg backdrop-blur-md transition-opacity duration-300;
+    @apply pointer-events-none fixed bottom-6 left-1/2 z-[400] max-w-[min(20rem,calc(100vw-2rem))] -translate-x-1/2 rounded-lg border border-slate-200/80 bg-white/95 px-4 py-2.5 text-center text-sm text-slate-800 shadow-lg backdrop-blur-md transition-opacity duration-300 dark:border-white/15 dark:bg-slate-900/95 dark:text-slate-100;
   }
 
   .save-toast[hidden] {
@@ -447,20 +488,20 @@
   }
 
   .updates-modal__backdrop {
-    @apply absolute inset-0 border-0 bg-slate-950/90 p-0 backdrop-blur-md;
+    @apply absolute inset-0 border-0 bg-slate-900/50 p-0 backdrop-blur-md dark:bg-slate-950/90;
   }
 
   .updates-modal__sheet {
-    @apply relative z-10 flex h-full w-full flex-col bg-[radial-gradient(circle_at_top,_#0f172a,_#020617_65%)];
+    @apply relative z-10 flex h-full w-full flex-col bg-[radial-gradient(circle_at_top,hsl(var(--app-bg-top)),hsl(var(--app-bg-bottom))_65%)];
     animation: modalIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
   .updates-modal__header {
-    @apply flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-4 sm:px-6;
+    @apply flex shrink-0 items-center justify-between gap-3 border-b border-slate-200/80 px-4 py-4 sm:px-6 dark:border-white/10;
   }
 
   .updates-modal__title {
-    @apply m-0 text-lg font-semibold text-slate-100 sm:text-xl;
+    @apply m-0 text-lg font-semibold text-slate-900 sm:text-xl dark:text-slate-100;
   }
 
   .updates-modal__cards {
@@ -468,15 +509,15 @@
   }
 
   .updates-modal__footer {
-    @apply shrink-0 border-t border-white/10 px-4 py-4 sm:px-6;
+    @apply shrink-0 border-t border-slate-200/80 px-4 py-4 sm:px-6 dark:border-white/10;
   }
 
   .updates-modal__got-it {
-    @apply inline-flex w-full items-center justify-center rounded-xl border border-cyan-400/35 bg-cyan-500/15 px-4 py-3 text-sm font-semibold text-cyan-100 transition-[colors,background-color] duration-ui ease-smooth hover:bg-cyan-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50;
+    @apply inline-flex w-full items-center justify-center rounded-xl border border-cyan-500/35 bg-cyan-500/10 px-4 py-3 text-sm font-semibold text-cyan-800 transition-[colors,background-color] duration-ui ease-smooth hover:bg-cyan-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50 dark:border-cyan-400/35 dark:bg-cyan-500/15 dark:text-cyan-100 dark:hover:bg-cyan-500/25 dark:focus-visible:ring-cyan-400/50;
   }
 
   .updates-card {
-    @apply flex gap-3 rounded-xl border border-white/10 bg-white/5 p-4 ring-1 ring-white/5 backdrop-blur-sm;
+    @apply flex gap-3 rounded-xl border border-slate-200/80 bg-white/70 p-4 ring-1 ring-slate-200/50 backdrop-blur-sm dark:border-white/10 dark:bg-white/5 dark:ring-white/5;
   }
 
   .updates-card--fade-in {
@@ -512,10 +553,54 @@
   }
 
   .updates-card__title {
-    @apply m-0 text-sm font-semibold text-slate-100 sm:text-base;
+    @apply m-0 text-sm font-semibold text-slate-900 sm:text-base dark:text-slate-100;
   }
 
   .updates-card__desc {
-    @apply mb-0 mt-1 text-xs leading-relaxed text-slate-400 sm:text-sm;
+    @apply mb-0 mt-1 text-xs leading-relaxed text-slate-600 sm:text-sm dark:text-slate-400;
+  }
+
+  .lang-menu {
+    @apply relative;
+  }
+
+  .lang-trigger {
+    @apply inline-flex h-10 min-w-[7rem] items-center justify-between gap-2 rounded-lg border border-slate-300/70 bg-white/80 px-2.5 text-[0.85rem] font-semibold leading-none text-slate-800 backdrop-blur-md transition-[border-color,box-shadow,background-color] duration-200 ease-smooth hover:border-slate-400/80 hover:bg-white focus-visible:border-sky-500/80 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-sky-500/25 dark:border-slate-400/35 dark:bg-slate-950/65 dark:text-slate-100 dark:hover:border-slate-400/55 dark:hover:bg-slate-950/80;
+  }
+
+  .lang-chevron {
+    @apply size-[0.9rem] opacity-80 transition-transform duration-200 ease-smooth;
+  }
+
+  .lang-menu[data-open="true"] .lang-chevron {
+    @apply rotate-180;
+  }
+
+  .lang-content {
+    @apply absolute right-0 top-[calc(100%+0.5rem)] z-40 min-w-full rounded-xl border border-slate-200/80 bg-white/95 p-1.5 shadow-[0_12px_36px_rgba(15,23,42,0.12)] dark:border-slate-400/30 dark:bg-slate-950/95 dark:shadow-[0_12px_36px_rgba(2,6,23,0.45)];
+  }
+
+  .lang-content[hidden] {
+    display: none;
+  }
+
+  .lang-option {
+    @apply w-full rounded-[0.55rem] border-0 bg-transparent px-2.5 py-2 text-left text-[0.85rem] font-medium leading-tight text-slate-700 hover:bg-slate-100 hover:text-slate-900 focus-visible:bg-slate-100 focus-visible:text-slate-900 focus-visible:outline-none dark:text-slate-200 dark:hover:bg-slate-800/50 dark:hover:text-slate-50 dark:focus-visible:bg-slate-800/50 dark:focus-visible:text-slate-50;
+  }
+
+  .lang-option[data-active="true"] {
+    @apply bg-sky-100 text-sky-900 dark:bg-blue-900/35 dark:text-slate-50;
+  }
+
+  #appBootOverlay.app-boot-overlay {
+    background: radial-gradient(
+      circle at top,
+      var(--app-overlay-top),
+      var(--app-overlay-bottom) 60%
+    );
+  }
+
+  .app-boot-overlay__mark {
+    @apply text-[1.35rem] tracking-tight;
   }
 }

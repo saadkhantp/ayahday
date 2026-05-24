@@ -125,10 +125,29 @@ const WHATS_NEW_RELEASES = [
 const WHATS_NEW_RELEASE_ID = WHATS_NEW_RELEASES[0].id;
 const WHATS_NEW_STORAGE_KEY = `ayahday-whats-new-dismissed-${WHATS_NEW_APP_VERSION}-${WHATS_NEW_RELEASE_ID}`;
 const SAVED_AYAHS_STORAGE_KEY = "ayahday-saved-ayahs";
-const FIRST_SAVE_HINT_STORAGE_KEY = "ayahday-first-save-hint-seen";
+const HEADER_WIZARD_SEEN_KEY = "ayahday-header-wizard-seen";
 const MAX_SAVED_AYAHS = 5;
 const SAVE_TOAST_MS = 3500;
-const SAVED_HINT_MS = 3200;
+const WIZARD_START_DELAY_MS = 1000;
+const WIZARD_STEP_VISIBLE_MS = 3000;
+const WIZARD_FADE_MS = 300;
+const HEADER_WIZARD_STEPS = [
+  {
+    hintId: "updatesBellHint",
+    text: "Check What's New",
+    pulseTargetId: "updatesBellBtn",
+  },
+  {
+    hintId: "themeToggleHint",
+    text: "Switch to Dark Theme",
+    pulseTargetId: "themeToggleBtn",
+  },
+  {
+    hintId: "savedMenuHint",
+    text: "Your saved Ayahs",
+    pulseTargetId: "savedMenuTrigger",
+  },
+];
 
 let currentLang = normalizeLanguage(localStorage.getItem(LANGUAGE_STORAGE_KEY));
 let currentAyahNumber = getRandomAyahNumber();
@@ -156,12 +175,13 @@ const BOOT_OVERLAY_FALLBACK_MS = 3000;
 const VERSE_FADE_MS = 420;
 let bootOverlayFallbackTimer = null;
 let saveToastHideTimer = null;
-let savedHintHideTimer = null;
+let headerWizardAbort = null;
 let verseTransitionLock = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
   scheduleBootOverlayFallback();
   try {
+    initThemeToggle();
     initLanguageSelect();
     initUpdatesModal();
     const bootData = await fetchAyah(currentAyahNumber);
@@ -180,6 +200,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     initSavedAyahs();
     initShareTooltip();
     updateLanguageDisplay();
+    initHeaderWizard();
   } catch (err) {
     console.error("AyahDay boot failed:", err);
   } finally {
@@ -586,6 +607,7 @@ function updateUpdatesModalChrome() {
 function openUpdatesModal() {
   const modal = document.getElementById("updatesModal");
   if (!modal || !modal.hidden) return;
+  cancelHeaderWizard();
   closeSavedMenu();
   closeLanguageMenu();
   updateUpdatesModalChrome();
@@ -847,9 +869,12 @@ function fillSharePreviewCaptureRoot(root) {
   const rtl = isRtlEdition();
   const isUrdu = isUrduEdition();
   const isArabic = isArabicEdition();
+  const shareBg = getShareCaptureBackground();
+  const shareText = getResolvedTheme() === "dark" ? "text-slate-100" : "text-slate-800";
+  const shareMuted = getResolvedTheme() === "dark" ? "text-slate-400" : "text-slate-500";
   root.className =
-    "share-preview-capture rounded-lg bg-[#020617] p-4 sm:p-5 " +
-    (rtl ? "text-right" : "text-left");
+    `share-preview-capture rounded-lg p-4 sm:p-5 ${rtl ? "text-right" : "text-left"}`;
+  root.style.backgroundColor = shareBg;
   root.setAttribute("dir", rtl ? "rtl" : "ltr");
 
   const versePanel = document.getElementById("verseDisplay");
@@ -872,8 +897,8 @@ function fillSharePreviewCaptureRoot(root) {
     const ayah = document.createElement("p");
     ayah.className =
       isUrdu || isArabic
-        ? "font-urduHeader mt-3 text-base font-bold leading-7 text-slate-100 sm:text-lg"
-        : "mt-3 text-base font-bold leading-snug text-slate-100 first-letter:uppercase sm:text-lg";
+        ? `font-urduHeader mt-3 text-base font-bold leading-7 ${shareText} sm:text-lg`
+        : `mt-3 text-base font-bold leading-snug ${shareText} first-letter:uppercase sm:text-lg`;
     ayah.textContent = verseEl?.textContent ?? "";
 
     const divider = document.createElement("div");
@@ -889,7 +914,7 @@ function fillSharePreviewCaptureRoot(root) {
     });
 
     const surah = document.createElement("div");
-    surah.className = "font-urduUi text-[10px] leading-relaxed text-slate-400";
+    surah.className = `font-urduUi text-[10px] leading-relaxed ${shareMuted}`;
     surah.setAttribute("dir", "rtl");
     surah.textContent = arabicSurahName;
 
@@ -897,8 +922,7 @@ function fillSharePreviewCaptureRoot(root) {
   }
 
   const foot = document.createElement("p");
-  foot.className =
-    "mt-5 text-center text-[10px] font-normal leading-snug text-slate-400";
+  foot.className = `mt-5 text-center text-[10px] font-normal leading-snug ${shareMuted}`;
   foot.textContent = SHARE_SNAPSHOT_FOOTER;
   root.appendChild(foot);
 }
@@ -965,7 +989,7 @@ async function captureSharePreviewBlob() {
     requestAnimationFrame(() => requestAnimationFrame(resolve)),
   );
   const canvas = await html2canvas(target, {
-    backgroundColor: "#020617",
+    backgroundColor: getShareCaptureBackground(),
     scale: 2,
     useCORS: true,
     logging: false,
@@ -1077,9 +1101,9 @@ function updateLanguageDisplay() {
     document.documentElement.dir = "ltr";
     if (tagline) {
       tagline.className =
-        "element-to-hide mt-0.5 font-urduHeader text-sm font-medium leading-8 text-solar-gold";
+        "app-tagline element-to-hide mt-0.5 font-urduHeader text-sm font-medium leading-8";
       tagline.setAttribute("dir", "rtl");
-      tagline.textContent = "انگریزی، عربی، اردو اور مالے میں روزانہ کی آیات";
+      tagline.textContent = "روزانہ قرآنی آیات";
     }
     if (shareTooltipLabel) {
       shareTooltipLabel.textContent = "واٹس ایپ پر شیئر کریں";
@@ -1102,10 +1126,9 @@ function updateLanguageDisplay() {
     document.documentElement.dir = "ltr";
     if (tagline) {
       tagline.className =
-        "element-to-hide mt-0.5 font-urduHeader text-sm font-medium leading-8 text-solar-gold";
+        "app-tagline element-to-hide mt-0.5 font-urduHeader text-sm font-medium leading-8";
       tagline.setAttribute("dir", "rtl");
-      tagline.textContent =
-        "آيات قرآنية يومية بالعربية والإنجليزية والأردية والملايو";
+      tagline.textContent = "آيات قرآنية يومية";
     }
     if (shareTooltipLabel) {
       shareTooltipLabel.textContent = "شارك على واتساب";
@@ -1127,9 +1150,11 @@ function updateLanguageDisplay() {
   document.documentElement.dir = "ltr";
   if (tagline) {
     tagline.className =
-      "element-to-hide mt-0.5 text-xs font-medium text-solar-gold";
+      "app-tagline element-to-hide mt-0.5 text-xs font-medium";
     tagline.removeAttribute("dir");
-    tagline.textContent = "Daily Quranic verses in Multiple Languages";
+    tagline.textContent = isMalay
+      ? "Ayat Al-Quran Harian"
+      : "Daily Quranic Verses";
   }
   if (shareTooltipLabel) {
     shareTooltipLabel.textContent = "Share on WhatsApp";
@@ -1319,42 +1344,123 @@ async function viewSavedAyah(surah, ayah) {
   });
 }
 
-function hasSeenFirstSaveHint() {
-  return localStorage.getItem(FIRST_SAVE_HINT_STORAGE_KEY) === "1";
+function hasSeenHeaderWizard() {
+  return localStorage.getItem(HEADER_WIZARD_SEEN_KEY) === "1";
 }
 
-function markFirstSaveHintSeen() {
-  localStorage.setItem(FIRST_SAVE_HINT_STORAGE_KEY, "1");
+function markHeaderWizardSeen() {
+  localStorage.setItem(HEADER_WIZARD_SEEN_KEY, "1");
 }
 
-function getSavedHintMessage() {
-  const locale = getWhatsNewLocale();
-  const messages = {
-    en: "Saved ayahs here",
-    ur: "محفوظ آیات یہاں",
-    ar: "الآيات هنا",
-    ms: "Ayat di sini",
-  };
-  return messages[locale] ?? messages.en;
+function closeHeaderTooltip(hintId) {
+  const hint = document.getElementById(hintId);
+  if (!hint) return;
+  hint.classList.remove("header-tooltip--open");
+  hint.setAttribute("hidden", "");
+  hint.setAttribute("aria-hidden", "true");
 }
 
-function clearSavedHintTimer() {
-  if (savedHintHideTimer) {
-    clearTimeout(savedHintHideTimer);
-    savedHintHideTimer = null;
+function closeAllHeaderTooltips() {
+  HEADER_WIZARD_STEPS.forEach(({ hintId }) => closeHeaderTooltip(hintId));
+  document
+    .getElementById("savedMenuTrigger")
+    ?.classList.remove("saved-menu-trigger--pulse");
+}
+
+function openHeaderTooltip(hintId, text) {
+  const hint = document.getElementById(hintId);
+  if (!hint) return;
+  hint.textContent = text;
+  hint.removeAttribute("hidden");
+  hint.setAttribute("aria-hidden", "false");
+  requestAnimationFrame(() => {
+    hint.classList.add("header-tooltip--open");
+  });
+}
+
+function waitForHeaderTooltipFade() {
+  return sleep(WIZARD_FADE_MS);
+}
+
+function pulseHeaderWizardTarget(targetId) {
+  if (prefersReducedMotion()) return;
+  const target = document.getElementById(targetId);
+  if (!target) return;
+  if (targetId === "savedMenuTrigger") {
+    pulseSavedMenuTrigger();
+    return;
+  }
+  target.classList.remove("header-icon-btn--pulse");
+  void target.offsetWidth;
+  target.classList.add("header-icon-btn--pulse");
+  target.addEventListener(
+    "animationend",
+    () => target.classList.remove("header-icon-btn--pulse"),
+    { once: true },
+  );
+}
+
+function cancelHeaderWizard() {
+  if (!headerWizardAbort || headerWizardAbort.cancelled) return;
+  headerWizardAbort.cancelled = true;
+  closeAllHeaderTooltips();
+  markHeaderWizardSeen();
+}
+
+async function runHeaderWizard() {
+  if (hasSeenHeaderWizard()) return;
+
+  const abort = { cancelled: false };
+  headerWizardAbort = abort;
+
+  const dismiss = () => cancelHeaderWizard();
+  document.addEventListener("pointerdown", dismiss);
+  document.addEventListener("keydown", dismiss);
+
+  try {
+    await sleep(WIZARD_START_DELAY_MS);
+    if (abort.cancelled) return;
+
+    for (const step of HEADER_WIZARD_STEPS) {
+      if (abort.cancelled) return;
+      closeAllHeaderTooltips();
+      openHeaderTooltip(step.hintId, step.text);
+      pulseHeaderWizardTarget(step.pulseTargetId);
+      await waitForHeaderTooltipFade();
+      if (abort.cancelled) return;
+      await sleep(WIZARD_STEP_VISIBLE_MS);
+      if (abort.cancelled) return;
+      closeHeaderTooltip(step.hintId);
+      await waitForHeaderTooltipFade();
+    }
+
+    if (!abort.cancelled) {
+      markHeaderWizardSeen();
+    }
+  } finally {
+    document.removeEventListener("pointerdown", dismiss);
+    document.removeEventListener("keydown", dismiss);
+    headerWizardAbort = null;
   }
 }
 
-function closeSavedHintTooltip() {
-  const hint = document.getElementById("savedMenuHint");
-  const trigger = document.getElementById("savedMenuTrigger");
-  clearSavedHintTimer();
-  if (hint) {
-    hint.classList.remove("saved-menu-hint--open");
-    hint.setAttribute("hidden", "");
-    hint.setAttribute("aria-hidden", "true");
-  }
-  trigger?.classList.remove("saved-menu-trigger--pulse");
+function initHeaderWizard() {
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (
+        HEADER_WIZARD_STEPS.some(({ hintId }) =>
+          document
+            .getElementById(hintId)
+            ?.classList.contains("header-tooltip--open"),
+        )
+      ) {
+        cancelHeaderWizard();
+      }
+    },
+    true,
+  );
+  void runHeaderWizard();
 }
 
 function animateSaveAyahHeart() {
@@ -1385,32 +1491,12 @@ function pulseSavedMenuTrigger() {
   );
 }
 
-/** One-time pointer below the header heart after the user's first save. */
-function maybeShowFirstSaveHint() {
-  if (hasSeenFirstSaveHint()) return;
-
-  const hint = document.getElementById("savedMenuHint");
-  const trigger = document.getElementById("savedMenuTrigger");
-  if (!hint || !trigger) return;
-
-  closeSavedMenu();
-  hint.textContent = getSavedHintMessage();
-  hint.removeAttribute("hidden");
-  hint.setAttribute("aria-hidden", "false");
-  hint.classList.add("saved-menu-hint--open");
-  markFirstSaveHintSeen();
-  pulseSavedMenuTrigger();
-
-  clearSavedHintTimer();
-  savedHintHideTimer = setTimeout(closeSavedHintTooltip, SAVED_HINT_MS);
-}
-
 function openSavedMenu() {
   const menu = document.getElementById("saved-menu");
   const trigger = document.getElementById("savedMenuTrigger");
   const dropdown = document.getElementById("savedMenuDropdown");
   if (!menu || !trigger || !dropdown) return;
-  closeSavedHintTooltip();
+  closeHeaderTooltip("savedMenuHint");
   renderSavedReflectionsList();
   menu.dataset.open = "true";
   trigger.setAttribute("aria-expanded", "true");
@@ -1460,16 +1546,11 @@ function toggleSaveCurrentAyah() {
     return;
   }
 
-  const isFirstSave = saved.length === 0;
   saved.push({ surah: currentSurahNumber, ayah: currentAyahInSurah });
   persistSavedAyahs(saved);
   updateSaveHeartState();
   animateSaveAyahHeart();
   renderSavedReflectionsList();
-  if (isFirstSave) {
-    // Defer so the document click handler does not close the hint on the same tap.
-    window.setTimeout(() => maybeShowFirstSaveHint(), 0);
-  }
 }
 
 function initSavedAyahs() {
@@ -1485,7 +1566,7 @@ function initSavedAyahs() {
   if (savedMenuTrigger) {
     savedMenuTrigger.addEventListener("click", (event) => {
       event.stopPropagation();
-      closeSavedHintTooltip();
+      closeHeaderTooltip("savedMenuHint");
       toggleSavedMenu();
     });
   }
@@ -1494,9 +1575,9 @@ function initSavedAyahs() {
     "scroll",
     () => {
       if (document.getElementById("savedMenuHint")?.classList.contains(
-        "saved-menu-hint--open",
+        "header-tooltip--open",
       )) {
-        closeSavedHintTooltip();
+        closeHeaderTooltip("savedMenuHint");
       }
     },
     true,
