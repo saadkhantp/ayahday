@@ -380,13 +380,7 @@
 
   .header-tooltip::before {
     content: "";
-    @apply absolute -top-1 right-3 z-[1] block size-2 rotate-45 border-l border-t bg-white/95 dark:bg-slate-900/95;
-  }
-
-  /** Gold dot centered above the caret (not overlapping the diamond) */
-  .header-tooltip::after {
-    content: "";
-    @apply absolute right-[0.8125rem] top-0 z-[2] block size-1.5 -translate-y-[calc(100%+0.625rem)] rounded-full bg-solar-gold;
+    @apply absolute -top-1 right-3 block size-2 rotate-45 border-l border-t bg-white/95 dark:bg-slate-900/95;
   }
 
   .header-tooltip--bell {
