@@ -20,6 +20,33 @@ const WHATS_NEW_APP_VERSION = "1.0.0";
  */
 const WHATS_NEW_RELEASES = [
   {
+    id: "light-dark-theme",
+    icon: "contrast",
+    theme: "cyan",
+    copy: {
+      en: {
+        title: "Light & dark mode",
+        description:
+          "Tap the contrast icon in the header to switch between light and dark theme.",
+      },
+      ur: {
+        title: "لائٹ اور ڈارک موڈ",
+        description:
+          "ہیڈر میں کنٹراسٹ آئیکن سے لائٹ اور ڈارک تھیم تبدیل کریں۔",
+      },
+      ar: {
+        title: "الوضع الفاتح والداكن",
+        description:
+          "اضغط أيقونة التباين في الشريط العلوي للتبديل بين السمة الفاتحة والداكنة.",
+      },
+      ms: {
+        title: "Mod terang & gelap",
+        description:
+          "Ketik ikon kontras di pengepala untuk tukar antara tema terang dan gelap.",
+      },
+    },
+  },
+  {
     id: "saved-reflections",
     icon: "favorite",
     theme: "rose",
