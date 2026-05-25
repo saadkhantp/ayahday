@@ -89,6 +89,15 @@
     @apply cursor-pointer border-0 bg-transparent text-sm text-slate-600 underline underline-offset-2 transition hover:text-cyan-700 dark:text-slate-300 dark:hover:text-cyan-200;
   }
 
+  .footer-icon-btn {
+    @apply inline-flex size-10 items-center justify-center rounded-lg border-0 bg-transparent p-0 text-slate-600 transition hover:bg-slate-100 hover:text-cyan-700 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-cyan-200;
+  }
+
+  /** Lucide icons — matches solar-helper AppFooter (size-6) */
+  .footer-icon-btn__icon {
+    @apply size-6 shrink-0;
+  }
+
   .btn-header-lang {
     @apply inline-flex items-center justify-center rounded-full border border-slate-300/60 bg-white/70 px-4 py-2 text-sm font-semibold text-cyan-800 transition hover:bg-white dark:border-white/20 dark:bg-white/5 dark:text-cyan-100 dark:hover:bg-white/10;
   }

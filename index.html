@@ -512,28 +512,10 @@
         dir="ltr"
         class="mt-10 border-t border-slate-200/80 pt-4 text-left text-xs text-slate-500 dark:border-white/10 dark:text-slate-400"
       >
-        <p style="margin-bottom: 4px">
-          © <span id="footerYear"></span> AyahDay
-        </p>
-        <p
-          class="mt-2 text-slate-500/80 dark:text-slate-400/70"
-          style="font-size: 11px; margin-bottom: 4px"
-        >
-          Help me improve AyahDay. Share feedback!
-        </p>
-        <div
-          class="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-600 dark:text-slate-300"
-        >
-          <a
-            href="./faq/"
-            class="underline underline-offset-2 hover:text-cyan-200"
-            style="text-decoration: underline; text-underline-offset: 2px"
-            >FAQ</a
-          >
-          <span class="text-slate-500" aria-hidden="true">•</span>
+        <div class="mb-4 flex flex-wrap items-center gap-2">
           <button
             type="button"
-            class="underline underline-offset-2 hover:text-cyan-200"
+            class="footer-icon-btn"
             aria-label="Share your feedback"
             title="Share your feedback"
             data-tally-open="xXR2ek"
@@ -543,11 +525,107 @@
             data-tally-emoji-animation="heart-beat"
             data-tally-auto-close="0"
             data-tally-form-events-forwarding="1"
-            style="text-decoration: underline; text-underline-offset: 2px"
+          >
+            <svg
+              class="footer-icon-btn__icon lucide lucide-message-circle"
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"
+              />
+            </svg>
+          </button>
+          <a
+            href="mailto:theayahday@gmail.com"
+            class="footer-icon-btn"
+            aria-label="Email AyahDay"
+            title="Email AyahDay"
+          >
+            <svg
+              class="footer-icon-btn__icon lucide lucide-mail"
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"
+              />
+              <rect width="20" height="16" x="2" y="4" rx="2" />
+            </svg>
+          </a>
+          <a
+            href="https://www.instagram.com/ayahdayquranic/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="footer-icon-btn"
+            aria-label="AyahDay on Instagram"
+            title="AyahDay on Instagram"
+          >
+            <svg
+              class="footer-icon-btn__icon lucide lucide-camera"
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"
+              />
+              <circle cx="12" cy="13" r="3" />
+            </svg>
+          </a>
+        </div>
+
+        <p>© <span id="footerYear"></span> AyahDay</p>
+
+        <p class="mt-2 text-[11px] text-slate-500/80 dark:text-slate-400/70">
+          Help me improve AyahDay. Share feedback!
+        </p>
+
+        <nav
+          aria-label="Footer"
+          class="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-600 dark:text-slate-300"
+        >
+          <a href="./faq/" class="footer-link">FAQ</a>
+          <span class="text-slate-500" aria-hidden="true">•</span>
+          <button
+            type="button"
+            class="footer-link"
+            aria-label="Share your feedback"
+            title="Share your feedback"
+            data-tally-open="xXR2ek"
+            data-tally-hide-title="1"
+            data-tally-overlay="1"
+            data-tally-emoji-text="🕋"
+            data-tally-emoji-animation="heart-beat"
+            data-tally-auto-close="0"
+            data-tally-form-events-forwarding="1"
           >
             Feedback
           </button>
-        </div>
+        </nav>
       </footer>
     </div>
 
