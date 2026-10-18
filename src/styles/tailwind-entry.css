@@ -774,7 +774,7 @@
   }
 
   .reel-slide .surah {
-    font-family: "Noto Sans Arabic", sans-serif;
+    font-family: "Amiri", serif;
   }
 
   .reel-slide .verse-surah-divider {
@@ -947,6 +947,10 @@
     }
   }
 
+  .save-ayah-wrap {
+    @apply relative inline-flex;
+  }
+
   .reel-actions .save-ayah-btn {
     @apply text-rose-500 hover:text-rose-600 dark:text-rose-300 dark:hover:text-rose-200;
   }
@@ -1049,19 +1053,30 @@
   }
 
   .reel-actions .header-tooltip--more,
-  .reel-actions .header-tooltip--recite {
-    @apply bottom-auto left-auto right-[calc(100%+0.45rem)] top-1/2 max-w-[11rem] -translate-y-1/2 whitespace-normal border-cyan-200/80 text-cyan-800 dark:border-cyan-400/30 dark:text-cyan-100/95;
+  .reel-actions .header-tooltip--recite,
+  .reel-actions .header-tooltip--save {
+    @apply bottom-auto left-auto right-[calc(100%+0.45rem)] top-1/2 max-w-[11rem] -translate-y-1/2 whitespace-nowrap border-cyan-200/80 text-cyan-800 dark:border-cyan-400/30 dark:text-cyan-100/95;
+  }
+
+  .reel-actions .header-tooltip--save {
+    @apply border-rose-200/80 text-rose-800 dark:border-rose-300/30 dark:text-rose-100/95;
   }
 
   .reel-actions .header-tooltip--more.header-tooltip--open,
-  .reel-actions .header-tooltip--recite.header-tooltip--open {
+  .reel-actions .header-tooltip--recite.header-tooltip--open,
+  .reel-actions .header-tooltip--save.header-tooltip--open {
     transform: translateY(-50%);
   }
 
   .reel-actions .header-tooltip--more::before,
-  .reel-actions .header-tooltip--recite::before {
+  .reel-actions .header-tooltip--recite::before,
+  .reel-actions .header-tooltip--save::before {
     @apply -right-1 top-1/2 border-b border-r border-l-0 border-t-0 border-cyan-200/80 dark:border-cyan-400/30;
     transform: translateY(-50%) rotate(-45deg);
+  }
+
+  .reel-actions .header-tooltip--save::before {
+    @apply border-rose-200/80 dark:border-rose-300/30;
   }
 
   .recite-btn--pulse {

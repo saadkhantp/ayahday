@@ -253,6 +253,7 @@ const CLOUD_PROBE_MS = 1200;
 const FEED_ERROR_MESSAGE = "Error fetching verse. Please try again later.";
 let bootOverlayFallbackTimer = null;
 let saveToastHideTimer = null;
+let saveHintTimer = null;
 let headerWizardAbort = null;
 let reciteAudio = null;
 let reciteLoadTimer = null;
@@ -2294,6 +2295,36 @@ function updateSaveHeartState() {
   btn.title = label;
 }
 
+const SAVE_HINT_MS = 2200;
+
+function dismissSaveHint() {
+  if (saveHintTimer) {
+    clearTimeout(saveHintTimer);
+    saveHintTimer = null;
+  }
+  closeHeaderTooltip("saveAyahHint");
+  document.getElementById("saveAyahBtn")?.removeAttribute("aria-describedby");
+  document.removeEventListener("pointerdown", onSaveHintPointerDown);
+}
+
+function onSaveHintPointerDown(event) {
+  if (event.target instanceof Element && event.target.closest("#saveAyahBtn")) {
+    return;
+  }
+  dismissSaveHint();
+}
+
+function showSaveHint(message) {
+  const hint = document.getElementById("saveAyahHint");
+  const btn = document.getElementById("saveAyahBtn");
+  if (!hint || !btn) return;
+  dismissSaveHint();
+  openHeaderTooltip("saveAyahHint", message);
+  btn.setAttribute("aria-describedby", "saveAyahHint");
+  document.addEventListener("pointerdown", onSaveHintPointerDown);
+  saveHintTimer = window.setTimeout(dismissSaveHint, SAVE_HINT_MS);
+}
+
 function showSaveToast(message) {
   const toast = document.getElementById("saveToast");
   if (!toast) return;
@@ -2585,6 +2616,7 @@ function toggleSaveCurrentAyah() {
     persistSavedAyahs(saved);
     updateSaveHeartState();
     renderSavedReflectionsList();
+    dismissSaveHint();
     return;
   }
 
@@ -2598,7 +2630,7 @@ function toggleSaveCurrentAyah() {
   updateSaveHeartState();
   animateSaveAyahHeart();
   renderSavedReflectionsList();
-  showSaveToast("Ayah saved");
+  showSaveHint("Ayah saved");
 }
 
 function initSavedAyahs() {
@@ -2609,6 +2641,9 @@ function initSavedAyahs() {
       toggleSaveCurrentAyah();
     });
   }
+  getReelFeed()?.addEventListener("scroll", () => dismissSaveHint(), {
+    passive: true,
+  });
 
   const savedMenuTrigger = document.getElementById("savedMenuTrigger");
   if (savedMenuTrigger) {
