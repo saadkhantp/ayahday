@@ -20,6 +20,60 @@ const WHATS_NEW_APP_VERSION = "1.0.0";
  */
 const WHATS_NEW_RELEASES = [
   {
+    id: "ayah-recitation",
+    icon: "volume_up",
+    theme: "emerald",
+    copy: {
+      en: {
+        title: "Arabic recitation",
+        description:
+          "Play the current ayah in Arabic. The recording is by Mishary Rashid Alafasy.",
+      },
+      ur: {
+        title: "عربی تلاوت",
+        description:
+          "موجودہ آیت کی عربی تلاوت سنیں۔ یہ ریکارڈنگ مشاری راشد العفاسی کی ہے۔",
+      },
+      ar: {
+        title: "تلاوة عربية",
+        description:
+          "استمع إلى الآية الحالية بالعربية. التسجيل لمشاري راشد العفاسي.",
+      },
+      ms: {
+        title: "Bacaan Arab",
+        description:
+          "Dengar ayat semasa dalam bahasa Arab. Rakaman oleh Mishary Rashid Alafasy.",
+      },
+    },
+  },
+  {
+    id: "vertical-scroll",
+    icon: "swipe_vertical",
+    theme: "cyan",
+    copy: {
+      en: {
+        title: "Scroll between ayahs",
+        description:
+          "Swipe up or down to move through verses, one ayah on each screen.",
+      },
+      ur: {
+        title: "آیات کے درمیان سکرول",
+        description:
+          "اوپر یا نیچے سوائپ کریں۔ ہر اسکرین پر ایک آیت۔",
+      },
+      ar: {
+        title: "تمرير بين الآيات",
+        description:
+          "اسحب للأعلى أو للأسفل للتنقل بين الآيات، آية واحدة في كل شاشة.",
+      },
+      ms: {
+        title: "Tatal antara ayat",
+        description:
+          "Leret ke atas atau ke bawah untuk beralih ayat. Satu ayat setiap skrin.",
+      },
+    },
+  },
+  {
     id: "light-dark-theme",
     icon: "contrast",
     theme: "cyan",
@@ -153,6 +207,8 @@ const WHATS_NEW_RELEASE_ID = WHATS_NEW_RELEASES[0].id;
 const WHATS_NEW_STORAGE_KEY = `ayahday-whats-new-dismissed-${WHATS_NEW_APP_VERSION}-${WHATS_NEW_RELEASE_ID}`;
 const SAVED_AYAHS_STORAGE_KEY = "ayahday-saved-ayahs";
 const HEADER_WIZARD_SEEN_KEY = "ayahday-header-wizard-seen";
+const SCROLL_HINT_SEEN_KEY = "ayahday-scroll-hint-seen";
+const SCROLL_HINT_MS = 3100;
 const MAX_SAVED_AYAHS = 5;
 const SAVE_TOAST_MS = 3500;
 const WIZARD_START_DELAY_MS = 1000;
@@ -250,6 +306,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!getSlides().length) appendErrorSlide(FEED_ERROR_MESSAGE);
   } finally {
     revealBootOverlay();
+    initScrollHint();
   }
 });
 
@@ -699,24 +756,44 @@ function initReelFeed() {
     window.addEventListener("resize", () => fitMountedVerses());
   }
   document.fonts?.ready.then(() => fitMountedVerses());
+  document.fonts?.addEventListener("loadingdone", () => {
+    requestAnimationFrame(() => fitMountedVerses());
+  });
+}
+
+function verseOverflowsHost(host, verse) {
+  if (verse.scrollHeight > host.clientHeight + 1) return true;
+  const range = document.createRange();
+  range.selectNodeContents(verse);
+  const hostRect = host.getBoundingClientRect();
+  const rects = range.getClientRects();
+  for (let i = 0; i < rects.length; i += 1) {
+    if (rects[i].top < hostRect.top - 1 || rects[i].bottom > hostRect.bottom + 1) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function fitSlideVerse(slide) {
   const host = slide?.querySelector(".reel-slide__verse");
   const verse = host?.querySelector(".verse");
-  if (!host || !verse || host.clientHeight < 40) return;
+  if (!host || !verse) return;
+  host.classList.remove("is-overflowing");
+  if (host.clientHeight < 40) return;
   verse.style.fontSize = "";
   const maxSize = parseFloat(getComputedStyle(verse).fontSize);
-  if (!Number.isFinite(maxSize) || verse.scrollHeight <= host.clientHeight + 1) {
-    return;
-  }
-  let low = 9;
-  let high = maxSize;
+  if (!Number.isFinite(maxSize)) return;
+  if (!verseOverflowsHost(host, verse)) return;
+
+  const minSize = 15;
+  let low = minSize;
+  let high = Math.max(maxSize, minSize);
   let fitted = low;
   for (let step = 0; step < 12; step += 1) {
     const mid = (low + high) / 2;
     verse.style.fontSize = `${mid}px`;
-    if (verse.scrollHeight <= host.clientHeight + 1) {
+    if (!verseOverflowsHost(host, verse)) {
       fitted = mid;
       low = mid;
     } else {
@@ -724,8 +801,12 @@ function fitSlideVerse(slide) {
     }
   }
   verse.style.fontSize = `${fitted}px`;
-  if (verse.scrollHeight > host.clientHeight + 1) {
-    verse.style.fontSize = `${Math.max(9, fitted - 0.5)}px`;
+  if (!verseOverflowsHost(host, verse)) return;
+
+  verse.style.fontSize = `${minSize}px`;
+  if (verseOverflowsHost(host, verse)) {
+    host.classList.add("is-overflowing");
+    host.scrollTop = 0;
   }
 }
 
@@ -831,6 +912,45 @@ function revealBootOverlay() {
   });
 }
 
+function initScrollHint() {
+  const hint = document.getElementById("scrollHint");
+  const feed = getReelFeed();
+  if (!hint || !feed || localStorage.getItem(SCROLL_HINT_SEEN_KEY) === "1") {
+    return;
+  }
+
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    localStorage.setItem(SCROLL_HINT_SEEN_KEY, "1");
+    hint.classList.remove("is-on");
+    hint.hidden = true;
+    feed.removeEventListener("scroll", onFeedScroll);
+  };
+  const onFeedScroll = () => {
+    if (feed.scrollTop > 12) finish();
+  };
+
+  window.setTimeout(() => {
+    if (finished) return;
+    hint.hidden = false;
+    feed.addEventListener("scroll", onFeedScroll, { passive: true });
+    if (prefersReducedMotion()) {
+      window.setTimeout(finish, 1400);
+      return;
+    }
+    const onEnd = (event) => {
+      if (event.animationName !== "scroll-hint-out") return;
+      hint.removeEventListener("animationend", onEnd);
+      finish();
+    };
+    hint.addEventListener("animationend", onEnd);
+    hint.classList.add("is-on");
+    window.setTimeout(finish, SCROLL_HINT_MS);
+  }, 650);
+}
+
 function getRandomAyahNumber() {
   return Math.floor(Math.random() * 6236) + 1;
 }
@@ -874,7 +994,7 @@ function addEventListeners() {
     const savedMenu = document.getElementById("saved-menu");
     if (savedMenu && !savedMenu.contains(event.target)) {
       closeSavedMenu();
-      closeSavedHintTooltip();
+      closeHeaderTooltip("savedMenuHint");
     }
     const moreMenu = document.getElementById("more-menu");
     const moreSheet = document.getElementById("moreMenuSheet");
@@ -891,7 +1011,7 @@ function addEventListeners() {
         return;
       }
       closeUpdatesModal();
-      closeSavedHintTooltip();
+      closeHeaderTooltip("savedMenuHint");
       closeSavedMenu();
       closeLanguageMenu();
       closeMoreMenu();
