@@ -48,28 +48,28 @@ const WHATS_NEW_RELEASES = [
   },
   {
     id: "saved-reflections",
-    icon: "favorite",
+    icon: "bookmark",
     theme: "rose",
     copy: {
       en: {
         title: "Saved reflections",
         description:
-          "Save up to 5 ayahs with the heart on each verse. Open your list from the heart in the top right.",
+          "Save up to 5 ayahs with the bookmark on each verse. Open your list from the bookmark beside the menu.",
       },
       ur: {
         title: "محفوظ آیات",
         description:
-          "ہر آیت پر دل کے آئیکون سے زیادہ سے زیادہ ۵ آیات محفوظ کریں۔ اوپر دائیں جانب دل سے اپنی فہرست کھولیں۔",
+          "ہر آیت پر بک مارک سے زیادہ سے زیادہ ۵ آیات محفوظ کریں۔ فہرست اوپر بک مارک سے کھولیں۔",
       },
       ar: {
         title: "الآيات المحفوظة",
         description:
-          "احفظ حتى ٥ آيات بأيقونة القلب على كل آية. اعرض قائمتك من القلب أعلى اليمين.",
+          "احفظ حتى ٥ آيات بأيقونة الإشارة على كل آية. اعرض قائمتك من الإشارة في الأعلى.",
       },
       ms: {
         title: "Ayat tersimpan",
         description:
-          "Simpan sehingga 5 ayat dengan ikon hati pada setiap ayat. Buka senarai dari ikon hati di penjuru kanan atas.",
+          "Simpan sehingga 5 ayat dengan ikon penanda pada setiap ayat. Buka senarai dari ikon penanda di atas.",
       },
     },
   },
@@ -160,9 +160,9 @@ const WIZARD_STEP_VISIBLE_MS = 3000;
 const WIZARD_FADE_MS = 300;
 const HEADER_WIZARD_STEPS = [
   {
-    hintId: "updatesBellHint",
-    text: "Check What's New",
-    pulseTargetId: "updatesBellBtn",
+    hintId: "moreMenuHint",
+    text: "What's new, FAQ, and feedback",
+    pulseTargetId: "moreMenuBtn",
   },
   {
     hintId: "themeToggleHint",
@@ -180,11 +180,10 @@ let currentLang = normalizeLanguage(localStorage.getItem(LANGUAGE_STORAGE_KEY));
 let currentAyahNumber = getRandomAyahNumber();
 let currentSurahNumber = null;
 let currentAyahInSurah = null;
-let ayahHistory = [];
-let touchstartX = 0;
-let touchendX = 0;
-const minSwipeDistance = 30;
-let nextAyahData = null;
+let pendingAyahData = null;
+let reelObserver = null;
+let feedAheadPromise = null;
+let feedAheadFailures = 0;
 
 const API_CONFIG = {
   url: "https://api.alquran.cloud/v1/ayah",
@@ -199,11 +198,10 @@ let shareTooltipHideTimer = null;
 let shareSnapshotInProgress = false;
 
 const BOOT_OVERLAY_FALLBACK_MS = 3000;
-const VERSE_FADE_MS = 420;
+const FEED_ERROR_MESSAGE = "Error fetching verse. Please try again later.";
 let bootOverlayFallbackTimer = null;
 let saveToastHideTimer = null;
 let headerWizardAbort = null;
-let verseTransitionLock = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
   scheduleBootOverlayFallback();
@@ -211,25 +209,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     initThemeToggle();
     initLanguageSelect();
     initUpdatesModal();
+    initReelFeed();
     const bootData = await fetchAyah(currentAyahNumber);
-    if (bootData) {
-      applyVerseData(bootData);
-      const verseContent = document.getElementById("verseContent");
-      const footer = document.getElementById("versePanelFooter");
-      verseContent?.classList.add("verse-fade-in");
-      footer?.classList.add("verse-fade-in");
-      await sleep(VERSE_FADE_MS);
-      verseContent?.classList.remove("verse-fade-in");
-      footer?.classList.remove("verse-fade-in");
-    }
-    nextAyahData = await fetchAyah(getRandomAyahNumber());
+    const firstSlide = bootData
+      ? appendSlide(bootData)
+      : appendErrorSlide(FEED_ERROR_MESSAGE);
+    activateSlide(firstSlide);
     addEventListeners();
     initSavedAyahs();
     initShareTooltip();
     updateLanguageDisplay();
     initHeaderWizard();
-  } catch (err) {
+    } catch (err) {
     console.error("AyahDay boot failed:", err);
+    if (!getSlides().length) appendErrorSlide(FEED_ERROR_MESSAGE);
   } finally {
     revealBootOverlay();
   }
@@ -241,60 +234,6 @@ function prefersReducedMotion() {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function setVerseTransitioning(active) {
-  document
-    .getElementById("verseDisplay")
-    ?.classList.toggle("is-transitioning", active);
-}
-
-async function runVerseTransition(updateFn, { fadeOut = true } = {}) {
-  if (verseTransitionLock) return;
-  const verseDisplay = document.getElementById("verseDisplay");
-  const verseContent = document.getElementById("verseContent");
-  const footer = document.getElementById("versePanelFooter");
-
-  if (!verseContent || prefersReducedMotion()) {
-    verseDisplay?.classList.remove("swipe-left", "swipe-right");
-    await updateFn();
-    return;
-  }
-
-  verseTransitionLock = true;
-  setVerseTransitioning(true);
-  try {
-    if (fadeOut) {
-      verseContent.classList.add("verse-fade-out");
-      footer?.classList.add("verse-fade-out");
-      await sleep(VERSE_FADE_MS);
-    }
-
-    verseDisplay?.classList.remove("swipe-left", "swipe-right");
-
-    await updateFn();
-
-    verseContent.classList.remove("verse-fade-out");
-    footer?.classList.remove("verse-fade-out");
-    verseContent.classList.add("verse-fade-in");
-    footer?.classList.add("verse-fade-in");
-    await sleep(VERSE_FADE_MS);
-    verseContent.classList.remove("verse-fade-in");
-    footer?.classList.remove("verse-fade-in");
-  } finally {
-    verseTransitionLock = false;
-    setVerseTransitioning(false);
-  }
-}
-
-async function fetchAndDisplayAyah(ayahNumber, { fadeOut = true } = {}) {
-  await runVerseTransition(
-    async () => {
-      const data = await fetchAyah(ayahNumber);
-      if (data) applyVerseData(data);
-    },
-    { fadeOut },
-  );
 }
 
 function surahFromAyahPayload(payload) {
@@ -332,73 +271,442 @@ function verseDataFromArabicPayload(arabicPayload, text) {
   };
 }
 
-async function fetchAyah(ayahRef) {
-  try {
-    if (isArabicEdition()) {
-      const response = await fetch(
-        `${API_CONFIG.url}/${ayahRef}/${ARABIC_EDITION}`,
-      );
-      if (!response.ok) throw new Error("Failed to fetch Ayah");
-      const payload = await response.json();
-      return verseDataFromArabicPayload(payload, payload.data.text);
-    }
+const FALLBACK_QURAN_BASE =
+  "https://cdn.jsdelivr.net/gh/fawazahmed0/quran-api@1";
+const FALLBACK_CHAPTERS_URL =
+  "https://api.quran.com/api/v4/chapters?language=en";
+const FALLBACK_EDITION_FILES = {
+  "en.asad": "eng-muhammadasad",
+  "ur.maududi": "urd-abulaalamaududi",
+  "ms.basmeih": "msa-abdullahmuhamma",
+  [ARABIC_EDITION]: "ara-quranuthmanihaf",
+};
 
-    const arabicResponse = await fetch(
+let quranCloudDisabled = false;
+let fallbackNoticeShown = false;
+let fallbackChaptersPromise = null;
+const fallbackEditionPromises = new Map();
+
+async function fetchAyahFromCloud(ayahRef, requestedLang) {
+  if (isArabicEdition(requestedLang)) {
+    const response = await fetch(
       `${API_CONFIG.url}/${ayahRef}/${ARABIC_EDITION}`,
     );
+    if (!response.ok) throw new Error("Failed to fetch Ayah");
+    const payload = await response.json();
+    return verseDataFromArabicPayload(payload, payload.data.text);
+  }
+  const arabicResponse = await fetch(
+    `${API_CONFIG.url}/${ayahRef}/${ARABIC_EDITION}`,
+  );
+  const translationResponse = await fetch(
+    `${API_CONFIG.url}/${ayahRef}/${requestedLang}`,
+  );
+  if (!arabicResponse.ok || !translationResponse.ok) {
+    throw new Error("Failed to fetch Ayah");
+  }
+  const arabicData = await arabicResponse.json();
+  const translationData = await translationResponse.json();
+  return verseDataFromArabicPayload(arabicData, translationData.data.text);
+}
 
-    const translationResponse = await fetch(
-      `${API_CONFIG.url}/${ayahRef}/${currentLang}`,
-    );
+function loadFallbackChapters() {
+  if (!fallbackChaptersPromise) {
+    fallbackChaptersPromise = fetch(FALLBACK_CHAPTERS_URL)
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Failed to load chapter list");
+        const payload = await response.json();
+        return payload.chapters.slice().sort((a, b) => a.id - b.id);
+      })
+      .catch((error) => {
+        fallbackChaptersPromise = null;
+        throw error;
+      });
+  }
+  return fallbackChaptersPromise;
+}
 
-    if (!arabicResponse.ok || !translationResponse.ok)
-      throw new Error("Failed to fetch Ayah");
+function loadFallbackEdition(editionId) {
+  if (!fallbackEditionPromises.has(editionId)) {
+    const pending = fetch(
+      `${FALLBACK_QURAN_BASE}/editions/${editionId}.min.json`,
+    )
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Failed to load Quran text");
+        const payload = await response.json();
+        const texts = new Map();
+        for (const row of payload.quran) {
+          texts.set(`${row.chapter}:${row.verse}`, row.text);
+        }
+        return texts;
+      })
+      .catch((error) => {
+        fallbackEditionPromises.delete(editionId);
+        throw error;
+      });
+    fallbackEditionPromises.set(editionId, pending);
+  }
+  return fallbackEditionPromises.get(editionId);
+}
 
-    const arabicData = await arabicResponse.json();
-    const translationData = await translationResponse.json();
+function locateAyah(ayahRef, chapters) {
+  if (typeof ayahRef === "string" && ayahRef.includes(":")) {
+    const [surah, ayah] = ayahRef.split(":").map(Number);
+    if (!surah || !ayah) return null;
+    let global = ayah;
+    for (let index = 0; index < surah - 1; index += 1) {
+      global += chapters[index].verses_count;
+    }
+    return { surah, ayah, global };
+  }
+  const global = Number(ayahRef);
+  if (!Number.isInteger(global) || global < 1) return null;
+  let remaining = global;
+  for (const chapter of chapters) {
+    if (remaining <= chapter.verses_count) {
+      return { surah: chapter.id, ayah: remaining, global };
+    }
+    remaining -= chapter.verses_count;
+  }
+  return null;
+}
 
-    return verseDataFromArabicPayload(arabicData, translationData.data.text);
+async function fetchAyahFromFallback(ayahRef, requestedLang) {
+  const editionId = FALLBACK_EDITION_FILES[requestedLang];
+  if (!editionId) throw new Error("Unsupported edition");
+  const [chapters, texts] = await Promise.all([
+    loadFallbackChapters(),
+    loadFallbackEdition(editionId),
+  ]);
+  const located = locateAyah(ayahRef, chapters);
+  const chapter = located && chapters[located.surah - 1];
+  const text = located && texts.get(`${located.surah}:${located.ayah}`);
+  if (!located || !chapter || !text) throw new Error("Missing ayah text");
+  const place =
+    chapter.revelation_place === "madinah" ? "Medinan" : "Meccan";
+  return {
+    data: {
+      text,
+      surah: {
+        name: `سُورَةُ ${chapter.name_arabic}`,
+        englishName: chapter.name_simple,
+        englishNameTranslation: chapter.translated_name?.name || "",
+        revelationType: place,
+      },
+      globalNumber: located.global,
+      surahNumber: located.surah,
+      ayahInSurah: located.ayah,
+    },
+  };
+}
+
+async function fetchAyah(ayahRef) {
+  const requestedLang = currentLang;
+  try {
+    if (!quranCloudDisabled) {
+      try {
+        const cloud = await fetchAyahFromCloud(ayahRef, requestedLang);
+        if (requestedLang !== currentLang) return null;
+        return cloud;
+      } catch (error) {
+        quranCloudDisabled = true;
+        if (!fallbackNoticeShown) {
+          fallbackNoticeShown = true;
+          console.warn(
+            "Al Quran Cloud is unavailable. Loading verses from the backup text.",
+            error,
+          );
+        }
+      }
+    }
+    const fallback = await fetchAyahFromFallback(ayahRef, requestedLang);
+    if (requestedLang !== currentLang) return null;
+    return fallback;
   } catch (error) {
     console.error("Error fetching verse:", error);
-    displayError("Error fetching verse. Please try again later.");
     return null;
   }
 }
 
-function applyVerseData(data) {
-  if (!data) return;
-  const verseText = data.data.text;
+function getReelFeed() {
+  return document.getElementById("reelFeed");
+}
+
+function getSlides() {
+  const feed = getReelFeed();
+  return feed ? [...feed.querySelectorAll(".reel-slide")] : [];
+}
+
+function getActiveSlide() {
+  return (
+    document.querySelector(".reel-slide.is-active") ||
+    document.querySelector(".reel-slide")
+  );
+}
+
+function applySlideLanguage(slide) {
+  if (!slide) return;
+  slide.classList.remove("urdu-style", "arabic-style");
+  slide.setAttribute("dir", "ltr");
+  if (isUrduEdition()) slide.classList.add("urdu-style");
+  else if (isArabicEdition()) slide.classList.add("arabic-style");
+  slide.querySelectorAll(".verse").forEach((verse) => {
+    verse.setAttribute("dir", isRtlEdition() ? "rtl" : "ltr");
+  });
+}
+
+function createSlideShell() {
+  const slide = document.createElement("section");
+  slide.className = "reel-slide ayah-day-verse-panel";
+  slide.innerHTML = `
+    <div class="reel-slide__frame">
+      <div class="reel-slide__verse"></div>
+      <div class="reel-slide__caption">
+        <div class="verse-surah-divider" aria-hidden="true"></div>
+        <p class="surah"></p>
+      </div>
+    </div>
+  `;
+  applySlideLanguage(slide);
+  return slide;
+}
+
+function surahCaptionFragment(surahInfo, surahNumber, ayahInSurah) {
+  const fragment = document.createDocumentFragment();
+  const line = document.createElement("span");
+  line.textContent = `${surahInfo.name} (${surahInfo.englishName}, ${surahInfo.englishNameTranslation})`;
+  const reference = document.createElement("span");
+  reference.textContent = `${surahInfo.revelationType} ${formatSavedAyahLabel(surahNumber, ayahInSurah)}`;
+  fragment.append(line, document.createElement("br"), reference);
+  return fragment;
+}
+
+function fillSlide(slide, data) {
   const surahInfo = data.data.surah;
-  const surahDetails = `${surahInfo.name} (${surahInfo.englishName}, ${surahInfo.englishNameTranslation})<br>${surahInfo.revelationType}`;
-  const verseDisplay = document.getElementById("verseDisplay");
+  slide.dataset.ayahNumber = String(data.data.globalNumber);
+  slide.dataset.surahNumber = String(data.data.surahNumber);
+  slide.dataset.ayahInSurah = String(data.data.ayahInSurah);
+  slide.dataset.surahShareArabic = surahInfo.name;
+  slide.dataset.error = "false";
+  slide.setAttribute(
+    "aria-label",
+    `${surahInfo.englishName}, ${surahInfo.revelationType} ${formatSavedAyahLabel(data.data.surahNumber, data.data.ayahInSurah)}`,
+  );
 
-  currentAyahNumber = data.data.globalNumber;
-  currentSurahNumber = data.data.surahNumber;
-  currentAyahInSurah = data.data.ayahInSurah;
-  verseDisplay.dataset.surahShareArabic = surahInfo.name;
-  verseDisplay.dataset.surahNumber = String(currentSurahNumber);
-  verseDisplay.dataset.ayahInSurah = String(currentAyahInSurah);
+  const verseHost = slide.querySelector(".reel-slide__verse");
+  verseHost.replaceChildren();
+  const verse = document.createElement("p");
+  verse.className = "verse";
+  verse.textContent = data.data.text;
+  verseHost.appendChild(verse);
 
-  const verseContent = document.getElementById("verseContent");
-  const surahMeta = document.getElementById("surahMeta");
-  if (verseContent) {
-    verseContent.innerHTML = `<p class="verse">${verseText}</p><div class="verse-surah-divider" aria-hidden="true"></div>`;
-  }
-  if (surahMeta) {
-    surahMeta.innerHTML = surahDetails;
-  }
-  setSaveAyahUiVisible(true);
+  const caption = slide.querySelector(".reel-slide__caption");
+  caption.hidden = false;
+  caption.querySelector(".surah").replaceChildren(
+    surahCaptionFragment(
+      surahInfo,
+      data.data.surahNumber,
+      data.data.ayahInSurah,
+    ),
+  );
+  applySlideLanguage(slide);
+  fitSlideVerse(slide);
+}
+
+function fillSlideError(slide, message) {
+  delete slide.dataset.ayahNumber;
+  delete slide.dataset.surahShareArabic;
+  delete slide.dataset.surahNumber;
+  delete slide.dataset.ayahInSurah;
+  slide.dataset.error = "true";
+  slide.setAttribute("aria-label", "Verse unavailable");
+
+  const verseHost = slide.querySelector(".reel-slide__verse");
+  verseHost.replaceChildren();
+  const error = document.createElement("p");
+  error.className = "error";
+  error.textContent = message;
+  verseHost.appendChild(error);
+  slide.querySelector(".reel-slide__caption").hidden = true;
+}
+
+function observeSlide(slide) {
+  reelObserver?.observe(slide);
+}
+
+function mountSlide(slide, before) {
+  const feed = getReelFeed();
+  if (!feed || !slide) return slide;
+  if (before) feed.insertBefore(slide, before);
+  else feed.appendChild(slide);
+  observeSlide(slide);
+  fitSlideVerse(slide);
+  return slide;
+}
+
+function appendSlide(data) {
+  const slide = createSlideShell();
+  fillSlide(slide, data);
+  return mountSlide(slide);
+}
+
+function appendErrorSlide(message) {
+  const slide = createSlideShell();
+  fillSlideError(slide, message);
+  return mountSlide(slide);
+}
+
+function syncActiveFromSlide(slide) {
+  if (!slide) return;
+  const ayahNumber = Number(slide.dataset.ayahNumber);
+  currentAyahNumber = Number.isInteger(ayahNumber)
+    ? ayahNumber
+    : currentAyahNumber;
+  currentSurahNumber = slide.dataset.surahNumber
+    ? Number(slide.dataset.surahNumber)
+    : null;
+  currentAyahInSurah = slide.dataset.ayahInSurah
+    ? Number(slide.dataset.ayahInSurah)
+    : null;
   updateSaveHeartState();
 }
 
-async function displayVerse(data, options = {}) {
-  const { fadeOut = true } = options;
-  if (!data) return;
-  if (prefersReducedMotion()) {
-    applyVerseData(data);
+function activateSlide(slide) {
+  if (!slide) return;
+  getSlides().forEach((item) => {
+    item.classList.toggle("is-active", item === slide);
+  });
+  syncActiveFromSlide(slide);
+  void ensureFeedAhead();
+}
+
+function initReelFeed() {
+  const feed = getReelFeed();
+  if (!feed || reelObserver) return;
+  reelObserver = new IntersectionObserver(
+    (entries) => {
+      const best = entries
+        .filter((entry) => entry.isIntersecting && entry.intersectionRatio >= 0.6)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (best) activateSlide(best.target);
+    },
+    { root: feed, threshold: [0.6, 0.85] },
+  );
+  feed.addEventListener(
+    "scroll",
+    () => {
+      closeLanguageMenu();
+      closeMoreMenu();
+      closeSavedMenu();
+    },
+    { passive: true },
+  );
+  if (window.ResizeObserver) {
+    new ResizeObserver(() => fitMountedVerses()).observe(feed);
+  } else {
+    window.addEventListener("resize", () => fitMountedVerses());
+  }
+  document.fonts?.ready.then(() => fitMountedVerses());
+}
+
+function fitSlideVerse(slide) {
+  const host = slide?.querySelector(".reel-slide__verse");
+  const verse = host?.querySelector(".verse");
+  if (!host || !verse || host.clientHeight < 40) return;
+  verse.style.fontSize = "";
+  const maxSize = parseFloat(getComputedStyle(verse).fontSize);
+  if (!Number.isFinite(maxSize) || verse.scrollHeight <= host.clientHeight + 1) {
     return;
   }
-  await runVerseTransition(() => applyVerseData(data), { fadeOut });
+  let low = 9;
+  let high = maxSize;
+  let fitted = low;
+  for (let step = 0; step < 12; step += 1) {
+    const mid = (low + high) / 2;
+    verse.style.fontSize = `${mid}px`;
+    if (verse.scrollHeight <= host.clientHeight + 1) {
+      fitted = mid;
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+  verse.style.fontSize = `${fitted}px`;
+  if (verse.scrollHeight > host.clientHeight + 1) {
+    verse.style.fontSize = `${Math.max(9, fitted - 0.5)}px`;
+  }
+}
+
+function fitMountedVerses() {
+  getSlides().forEach(fitSlideVerse);
+}
+
+async function ensureFeedAhead() {
+  const slides = getSlides();
+  const index = slides.indexOf(getActiveSlide());
+  if (index < 0 || index < slides.length - 1) return;
+  if (feedAheadPromise) return feedAheadPromise;
+
+  let releaseAhead;
+  const run = new Promise((resolve) => {
+    releaseAhead = resolve;
+  });
+  feedAheadPromise = run;
+
+  let appended = false;
+  try {
+    const queued = pendingAyahData;
+    if (queued) pendingAyahData = null;
+    const data = queued || (await fetchAyah(getRandomAyahNumber()));
+    if (!data) {
+      feedAheadFailures += 1;
+      const delay = Math.min(1500 * feedAheadFailures, 8000);
+      setTimeout(() => {
+        void ensureFeedAhead();
+      }, delay);
+      return;
+    }
+    feedAheadFailures = 0;
+    appendSlide(data);
+    appended = true;
+  } finally {
+    if (feedAheadPromise === run) feedAheadPromise = null;
+    releaseAhead();
+  }
+
+  if (!appended || pendingAyahData) return;
+  void fetchAyah(getRandomAyahNumber()).then((next) => {
+    if (next && !pendingAyahData) pendingAyahData = next;
+  });
+}
+
+function setReelScrollPaused(paused) {
+  getReelFeed()?.classList.toggle("reel-feed--paused", paused);
+}
+
+function isReelChromeOpen() {
+  const shareModal = document.getElementById("sharePreviewModal");
+  const updatesModal = document.getElementById("updatesModal");
+  if (shareModal && !shareModal.hidden) return true;
+  if (updatesModal && !updatesModal.hidden) return true;
+  if (document.getElementById("more-menu")?.dataset.open === "true") return true;
+  if (document.getElementById("saved-menu")?.dataset.open === "true") return true;
+  if (document.getElementById("language-menu")?.dataset.open === "true") {
+    return true;
+  }
+  return false;
+}
+
+async function scrollToAdjacentSlide(direction) {
+  if (isReelChromeOpen()) return;
+  const slides = getSlides();
+  const index = slides.indexOf(getActiveSlide());
+  if (index < 0) return;
+  if (direction > 0 && index === slides.length - 1) {
+    await ensureFeedAhead();
+  }
+  const next = getSlides()[index + direction];
+  next?.scrollIntoView({ block: "start" });
 }
 
 function scheduleBootOverlayFallback() {
@@ -450,13 +758,12 @@ function addEventListeners() {
   if (sharePreviewConfirm) {
     sharePreviewConfirm.addEventListener("click", runShareFromPreview);
   }
-  document.getElementById("nextBtn").addEventListener("click", fetchNewVerse);
-  const prevBtn = document.getElementById("prevBtn");
-  prevBtn.classList.add("disabled");
-  prevBtn.addEventListener("click", fetchPrevVerse);
   const languageTrigger = document.getElementById("language-trigger");
   if (languageTrigger) {
-    languageTrigger.addEventListener("click", toggleLanguageMenu);
+    languageTrigger.addEventListener("click", (event) => {
+      event.stopPropagation();
+      toggleLanguageMenu();
+    });
   }
   const languageOptions = document.querySelectorAll(".lang-option");
   languageOptions.forEach((option) => {
@@ -475,21 +782,33 @@ function addEventListeners() {
       closeSavedMenu();
       closeSavedHintTooltip();
     }
+    const moreMenu = document.getElementById("more-menu");
+    const moreSheet = document.getElementById("moreMenuSheet");
+    const insideMore =
+      (moreMenu && moreMenu.contains(event.target)) ||
+      (moreSheet && moreSheet.contains(event.target));
+    if (!insideMore) closeMoreMenu();
   });
   document.addEventListener("keydown", (event) => {
-    if (event.key !== "Escape") return;
-    const shareModal = document.getElementById("sharePreviewModal");
-    if (shareModal && !shareModal.hidden) {
-      closeSharePreview();
+    if (event.key === "Escape") {
+      const shareModal = document.getElementById("sharePreviewModal");
+      if (shareModal && !shareModal.hidden) {
+        closeSharePreview();
+        return;
+      }
+      closeUpdatesModal();
+      closeSavedHintTooltip();
+      closeSavedMenu();
+      closeLanguageMenu();
+      closeMoreMenu();
       return;
     }
-    closeUpdatesModal();
-    closeSavedHintTooltip();
-    closeSavedMenu();
-    closeLanguageMenu();
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      if (isReelChromeOpen()) return;
+      event.preventDefault();
+      void scrollToAdjacentSlide(event.key === "ArrowDown" ? 1 : -1);
+    }
   });
-  document.addEventListener("touchstart", handleTouchStart, false);
-  document.addEventListener("touchend", handleTouchEnd, false);
 }
 
 function normalizeLanguage(languageEdition) {
@@ -557,9 +876,11 @@ function markUpdatesSeen() {
 }
 
 function syncUpdatesBellBadge() {
-  const bell = document.getElementById("updatesBellBtn");
-  if (!bell) return;
-  bell.classList.toggle("header-icon-btn--unread", hasUnseenUpdates());
+  const button = document.getElementById("moreMenuBtn");
+  const dot = document.getElementById("moreMenuWhatsNewDot");
+  const unseen = hasUnseenUpdates();
+  button?.classList.toggle("header-icon-btn--unread", unseen);
+  if (dot) dot.hidden = !unseen;
 }
 
 function renderUpdatesModalCards({ animate = true } = {}) {
@@ -637,12 +958,14 @@ function openUpdatesModal() {
   cancelHeaderWizard();
   closeSavedMenu();
   closeLanguageMenu();
+  closeMoreMenu();
   updateUpdatesModalChrome();
   renderUpdatesModalCards();
   modal.hidden = false;
   modal.setAttribute("aria-hidden", "false");
   document.documentElement.style.overflow = "hidden";
   document.body.style.overflow = "hidden";
+  setReelScrollPaused(true);
   document.getElementById("updatesModalClose")?.focus();
 }
 
@@ -653,11 +976,13 @@ function closeUpdatesModal({ markSeen = false } = {}) {
   modal.setAttribute("aria-hidden", "true");
   document.documentElement.style.overflow = "";
   document.body.style.overflow = "";
+  setReelScrollPaused(false);
   if (markSeen) markUpdatesSeen();
 }
 
 function initUpdatesModal() {
-  const bell = document.getElementById("updatesBellBtn");
+  const whatsNew = document.getElementById("moreMenuWhatsNew");
+  const moreBtn = document.getElementById("moreMenuBtn");
   const closeBtn = document.getElementById("updatesModalClose");
   const gotItBtn = document.getElementById("updatesModalGotIt");
   const backdrop = document.getElementById("updatesModalBackdrop");
@@ -665,9 +990,26 @@ function initUpdatesModal() {
   syncUpdatesBellBadge();
   updateUpdatesModalChrome();
 
-  if (bell) {
-    bell.addEventListener("click", () => openUpdatesModal());
+  if (moreBtn) {
+    moreBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      closeHeaderTooltip("moreMenuHint");
+      toggleMoreMenu();
+    });
   }
+  if (whatsNew) {
+    whatsNew.addEventListener("click", () => {
+      closeMoreMenu();
+      openUpdatesModal();
+    });
+  }
+  const moreDropdown = document.getElementById("moreMenuDropdown");
+  if (moreDropdown) {
+    moreDropdown.addEventListener("click", (event) => {
+      if (event.target.closest("a, button")) closeMoreMenu();
+    });
+  }
+  initMoreSheetDrag();
   if (closeBtn) {
     closeBtn.addEventListener("click", () => closeUpdatesModal());
   }
@@ -704,6 +1046,8 @@ function toggleLanguageMenu() {
     closeLanguageMenu();
     return;
   }
+  closeMoreMenu();
+  closeSavedMenu();
   languageMenu.dataset.open = "true";
   menuContent.hidden = false;
   trigger.setAttribute("aria-expanded", "true");
@@ -717,6 +1061,195 @@ function closeLanguageMenu() {
   languageMenu.dataset.open = "false";
   menuContent.hidden = true;
   trigger.setAttribute("aria-expanded", "false");
+}
+
+let moreSheetMotion = 0;
+
+function getMoreSheetParts() {
+  return {
+    menu: document.getElementById("more-menu"),
+    trigger: document.getElementById("moreMenuBtn"),
+    sheet: document.getElementById("moreMenuSheet"),
+    panel: document.getElementById("moreMenuDropdown"),
+  };
+}
+
+function openMoreMenu() {
+  const { menu, trigger, sheet, panel } = getMoreSheetParts();
+  if (!menu || !trigger || !sheet || !panel) return;
+  closeSavedMenu();
+  closeLanguageMenu();
+  closeHeaderTooltip("moreMenuHint");
+  moreSheetMotion += 1;
+  panel.classList.remove("more-sheet__panel--dragging");
+  panel.style.transform = "";
+  panel.style.transition = "";
+  sheet.hidden = false;
+  sheet.dataset.open = "false";
+  sheet.setAttribute("aria-hidden", "false");
+  panel.setAttribute("aria-hidden", "false");
+  void sheet.offsetWidth;
+  menu.dataset.open = "true";
+  sheet.dataset.open = "true";
+  trigger.setAttribute("aria-expanded", "true");
+  setReelScrollPaused(true);
+  panel.focus({ preventScroll: true });
+}
+
+function closeMoreMenu() {
+  const { menu, trigger, sheet, panel } = getMoreSheetParts();
+  if (!menu || !trigger || !sheet || !panel) return;
+  if (menu.dataset.open !== "true") return;
+  const motion = ++moreSheetMotion;
+  const returnFocus = sheet.contains(document.activeElement);
+  menu.dataset.open = "false";
+  sheet.dataset.open = "false";
+  trigger.setAttribute("aria-expanded", "false");
+  panel.setAttribute("aria-hidden", "true");
+  const shareModal = document.getElementById("sharePreviewModal");
+  const updatesModal = document.getElementById("updatesModal");
+  if (
+    (!shareModal || shareModal.hidden) &&
+    (!updatesModal || updatesModal.hidden)
+  ) {
+    setReelScrollPaused(false);
+  }
+
+  panel.classList.remove("more-sheet__panel--dragging");
+  if (panel.style.transform) {
+    const from = panel.style.transform;
+    panel.style.transition = "none";
+    panel.style.transform = from;
+    void panel.offsetWidth;
+    panel.style.transition = "transform 320ms cubic-bezier(0.22, 1, 0.36, 1)";
+    panel.style.transform = "translateY(110%)";
+  }
+
+  const finish = (event) => {
+    if (event && event.target !== panel) return;
+    if (event && event.propertyName && event.propertyName !== "transform") return;
+    panel.removeEventListener("transitionend", finish);
+    if (motion !== moreSheetMotion) return;
+    panel.style.transform = "";
+    panel.style.transition = "";
+    sheet.hidden = true;
+    sheet.setAttribute("aria-hidden", "true");
+  };
+  panel.addEventListener("transitionend", finish);
+  setTimeout(finish, 420);
+  if (returnFocus) trigger.focus({ preventScroll: true });
+}
+
+function snapMoreSheetBack() {
+  const { menu, panel } = getMoreSheetParts();
+  if (!panel || menu?.dataset.open !== "true") return;
+  const motion = ++moreSheetMotion;
+  panel.classList.remove("more-sheet__panel--dragging");
+  const from = panel.style.transform || "translateY(0px)";
+  panel.style.transition = "none";
+  panel.style.transform = from;
+  void panel.offsetWidth;
+  panel.style.transition = "transform 320ms cubic-bezier(0.22, 1, 0.36, 1)";
+  panel.style.transform = "translateY(0px)";
+  const clear = (event) => {
+    if (event && event.propertyName !== "transform") return;
+    panel.removeEventListener("transitionend", clear);
+    if (motion !== moreSheetMotion || menu.dataset.open !== "true") return;
+    panel.style.transition = "";
+    panel.style.transform = "";
+  };
+  panel.addEventListener("transitionend", clear);
+}
+
+function initMoreSheetDrag() {
+  const { sheet, panel } = getMoreSheetParts();
+  const backdrop = document.getElementById("moreMenuBackdrop");
+  if (!sheet || !panel) return;
+  let drag = null;
+  let ignoreClick = false;
+
+  panel.addEventListener(
+    "click",
+    (event) => {
+      if (!ignoreClick) return;
+      ignoreClick = false;
+      event.preventDefault();
+      event.stopPropagation();
+    },
+    true,
+  );
+
+  panel.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0 || sheet.dataset.open !== "true") return;
+    drag = {
+      pointerId: event.pointerId,
+      startY: event.clientY,
+      startX: event.clientX,
+      lastY: event.clientY,
+      lastTime: performance.now(),
+      velocity: 0,
+      active: false,
+    };
+  });
+
+  panel.addEventListener("pointermove", (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    const dy = event.clientY - drag.startY;
+    const dx = event.clientX - drag.startX;
+    if (!drag.active) {
+      if (Math.abs(dy) < 10 && Math.abs(dx) < 10) return;
+      if (dy <= 0 || Math.abs(dx) > dy) {
+        drag = null;
+        return;
+      }
+      drag.active = true;
+      ignoreClick = true;
+      panel.classList.add("more-sheet__panel--dragging");
+      try {
+        panel.setPointerCapture(event.pointerId);
+      } catch {
+        /* Pointer capture needs an active pointer; the drag still follows move events. */
+      }
+    }
+    const offset = Math.max(0, event.clientY - drag.startY);
+    const now = performance.now();
+    drag.velocity = (event.clientY - drag.lastY) / Math.max(now - drag.lastTime, 1);
+    drag.lastY = event.clientY;
+    drag.lastTime = now;
+    panel.style.transform = `translateY(${offset}px)`;
+  });
+
+  const endDrag = (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    const active = drag.active;
+    const dy = event.clientY - drag.startY;
+    const velocity = drag.velocity;
+    drag = null;
+    if (!active) return;
+    ignoreClick = true;
+    setTimeout(() => {
+      ignoreClick = false;
+    }, 400);
+    if (dy > 72 || (dy > 40 && velocity > 0.55)) {
+      closeMoreMenu();
+      return;
+    }
+    snapMoreSheetBack();
+  };
+
+  panel.addEventListener("pointerup", endDrag);
+  panel.addEventListener("pointercancel", endDrag);
+  backdrop?.addEventListener("click", () => closeMoreMenu());
+}
+
+function toggleMoreMenu() {
+  const menu = document.getElementById("more-menu");
+  if (!menu) return;
+  if (menu.dataset.open === "true") {
+    closeMoreMenu();
+    return;
+  }
+  openMoreMenu();
 }
 
 function getShareTooltipEls() {
@@ -808,77 +1341,19 @@ function initShareTooltip() {
   });
 }
 
-function handleTouchStart(e) {
-  touchstartX = e.changedTouches[0].screenX;
-}
-
-function handleTouchEnd(e) {
-  touchendX = e.changedTouches[0].screenX;
-  handleGesture();
-}
-
-function applyErrorState(message) {
-  const verseDisplay = document.getElementById("verseDisplay");
-  currentSurahNumber = null;
-  currentAyahInSurah = null;
-  delete verseDisplay.dataset.surahShareArabic;
-  delete verseDisplay.dataset.surahNumber;
-  delete verseDisplay.dataset.ayahInSurah;
-  const verseContent = document.getElementById("verseContent");
-  if (verseContent) {
-    verseContent.innerHTML = `<p class="error">${message}</p>`;
-  }
-  const surahMeta = document.getElementById("surahMeta");
-  if (surahMeta) surahMeta.textContent = "";
-  setSaveAyahUiVisible(false);
-}
-
-async function displayError(message) {
-  if (verseTransitionLock) {
-    applyErrorState(message);
-    return;
-  }
-  await runVerseTransition(() => applyErrorState(message));
-}
-
-function handleGesture() {
-  if (verseTransitionLock) return;
-  const distance = touchendX - touchstartX;
-  if (Math.abs(distance) > minSwipeDistance) {
-    const verseDisplay = document.getElementById("verseDisplay");
-    if (distance < 0) {
-      verseDisplay.classList.add("swipe-left");
-    } else {
-      verseDisplay.classList.add("swipe-right");
-    }
-  }
-}
-
-document
-  .getElementById("verseDisplay")
-  .addEventListener("animationend", async (event) => {
-    const verseDisplay = event.currentTarget;
-    if (event.target !== verseDisplay) return;
-    if (verseTransitionLock) return;
-
-    if (verseDisplay.classList.contains("swipe-left")) {
-      await runVerseTransition(() => fetchNewVerseCore());
-      return;
-    }
-    if (verseDisplay.classList.contains("swipe-right")) {
-      await runVerseTransition(() => fetchPrevVerseCore());
-    }
-  });
-
 function openSharePreview() {
   const modal = document.getElementById("sharePreviewModal");
   const root = document.getElementById("sharePreviewCaptureRoot");
   if (!modal || !root) return;
+  closeLanguageMenu();
+  closeMoreMenu();
+  closeSavedMenu();
   fillSharePreviewCaptureRoot(root);
   modal.hidden = false;
   modal.setAttribute("aria-hidden", "false");
   document.documentElement.style.overflow = "hidden";
   document.body.style.overflow = "hidden";
+  setReelScrollPaused(true);
   document.getElementById("sharePreviewConfirm")?.focus();
 }
 
@@ -889,6 +1364,7 @@ function closeSharePreview() {
   modal.setAttribute("aria-hidden", "true");
   document.documentElement.style.overflow = "";
   document.body.style.overflow = "";
+  setReelScrollPaused(false);
 }
 
 function fillSharePreviewCaptureRoot(root) {
@@ -904,7 +1380,7 @@ function fillSharePreviewCaptureRoot(root) {
   root.style.backgroundColor = shareBg;
   root.setAttribute("dir", rtl ? "rtl" : "ltr");
 
-  const versePanel = document.getElementById("verseDisplay");
+  const versePanel = getActiveSlide();
   const verseEl = versePanel?.querySelector(".verse");
   const hasError = versePanel?.querySelector(".error");
   const arabicSurahName = versePanel?.dataset.surahShareArabic ?? "";
@@ -1031,7 +1507,7 @@ async function captureSharePreviewBlob() {
 
 /** Plain text for wa.me / Web Share: ayah + Arabic surah only (matches card image). */
 function buildWhatsAppShareText() {
-  const versePanel = document.getElementById("verseDisplay");
+  const versePanel = getActiveSlide();
   if (!versePanel) {
     return `\n\nExplore more at ${SHARE_APP_URL}`;
   }
@@ -1103,14 +1579,28 @@ function handleLanguageChange(languageEdition) {
 
   currentLang = selectedLanguage;
   localStorage.setItem(LANGUAGE_STORAGE_KEY, currentLang);
+  pendingAyahData = null;
+  feedAheadFailures = 0;
   syncLanguageMenuUI();
   updateLanguageDisplay();
-  fetchAndDisplayAyah(currentAyahNumber, { fadeOut: true });
+  void refreshMountedSlides();
+}
+
+async function refreshMountedSlides() {
+  const slides = getSlides().filter(
+    (slide) => slide.dataset.ayahNumber && slide.dataset.error !== "true",
+  );
+  await Promise.all(
+    slides.map(async (slide) => {
+      const data = await fetchAyah(slide.dataset.ayahNumber);
+      if (data) fillSlide(slide, data);
+    }),
+  );
+  syncActiveFromSlide(getActiveSlide());
+  void ensureFeedAhead();
 }
 
 function updateLanguageDisplay() {
-  const verseDisplay = document.getElementById("verseDisplay");
-  const tagline = document.getElementById("tagline");
   const {
     btn: shareBtn,
     tip: shareTooltip,
@@ -1118,20 +1608,14 @@ function updateLanguageDisplay() {
   } = getShareTooltipEls();
   closeShareTooltip();
   syncLanguageMenuUI();
+  getSlides().forEach((slide) => {
+    applySlideLanguage(slide);
+    fitSlideVerse(slide);
+  });
 
-  verseDisplay.classList.remove("urdu-style", "arabic-style");
-
+  document.documentElement.dir = "ltr";
   if (isUrduEdition()) {
-    verseDisplay.classList.add("urdu-style");
-    verseDisplay.setAttribute("dir", "rtl");
     document.documentElement.lang = "ur-PK";
-    document.documentElement.dir = "ltr";
-    if (tagline) {
-      tagline.className =
-        "app-tagline element-to-hide mt-0.5 font-urduHeader text-sm font-medium leading-8";
-      tagline.setAttribute("dir", "rtl");
-      tagline.textContent = "روزانہ قرآنی آیات";
-    }
     if (shareTooltipLabel) {
       shareTooltipLabel.textContent = "واٹس ایپ پر شیئر کریں";
     }
@@ -1147,16 +1631,7 @@ function updateLanguageDisplay() {
   }
 
   if (isArabicEdition()) {
-    verseDisplay.classList.add("arabic-style");
-    verseDisplay.setAttribute("dir", "rtl");
     document.documentElement.lang = "ar";
-    document.documentElement.dir = "ltr";
-    if (tagline) {
-      tagline.className =
-        "app-tagline element-to-hide mt-0.5 font-urduHeader text-sm font-medium leading-8";
-      tagline.setAttribute("dir", "rtl");
-      tagline.textContent = "آيات قرآنية يومية";
-    }
     if (shareTooltipLabel) {
       shareTooltipLabel.textContent = "شارك على واتساب";
     }
@@ -1171,18 +1646,8 @@ function updateLanguageDisplay() {
     return;
   }
 
-  const isMalay = currentLang === "ms.basmeih";
-  verseDisplay.setAttribute("dir", "ltr");
-  document.documentElement.lang = isMalay ? "ms-MY" : "en-PK";
-  document.documentElement.dir = "ltr";
-  if (tagline) {
-    tagline.className =
-      "app-tagline element-to-hide mt-0.5 text-xs font-medium";
-    tagline.removeAttribute("dir");
-    tagline.textContent = isMalay
-      ? "Ayat Al-Quran Harian"
-      : "Daily Quranic Verses";
-  }
+  document.documentElement.lang =
+    currentLang === "ms.basmeih" ? "ms-MY" : "en-PK";
   if (shareTooltipLabel) {
     shareTooltipLabel.textContent = "Share on WhatsApp";
   }
@@ -1194,45 +1659,6 @@ function updateLanguageDisplay() {
     shareTooltip.removeAttribute("dir");
   }
   updateUpdatesModalChrome();
-}
-
-async function fetchNewVerseCore() {
-  ayahHistory.push(currentAyahNumber);
-  currentAyahNumber = getRandomAyahNumber();
-  const data = await fetchAyah(currentAyahNumber);
-  if (data) applyVerseData(data);
-  nextAyahData = await fetchAyah(getRandomAyahNumber());
-  updatePrevButtonState();
-}
-
-async function fetchNewVerse() {
-  if (verseTransitionLock) return;
-  await runVerseTransition(() => fetchNewVerseCore());
-}
-
-async function fetchPrevVerseCore() {
-  if (ayahHistory.length === 0) {
-    console.log("No previous Ayah available.");
-    return;
-  }
-  currentAyahNumber = ayahHistory.pop();
-  const data = await fetchAyah(currentAyahNumber);
-  if (data) applyVerseData(data);
-  updatePrevButtonState();
-}
-
-async function fetchPrevVerse() {
-  if (verseTransitionLock || ayahHistory.length === 0) return;
-  await runVerseTransition(() => fetchPrevVerseCore());
-}
-
-function updatePrevButtonState() {
-  const prevBtn = document.getElementById("prevBtn");
-  if (ayahHistory.length > 0) {
-    prevBtn.classList.remove("disabled");
-  } else {
-    prevBtn.classList.add("disabled");
-  }
 }
 
 // --- Saved ayahs (LocalStorage, max 5) ---
@@ -1285,14 +1711,15 @@ function formatSavedAyahLabel(surah, ayah) {
   return `Surah ${surah}, Ayah ${ayah}`;
 }
 
-function setSaveAyahUiVisible(visible) {
-  const footer = document.getElementById("versePanelFooter");
-  if (footer) footer.hidden = !visible;
-}
-
 function updateSaveHeartState() {
   const btn = document.getElementById("saveAyahBtn");
-  if (!btn || currentSurahNumber == null || currentAyahInSurah == null) return;
+  if (!btn) return;
+  if (currentSurahNumber == null || currentAyahInSurah == null) {
+    btn.setAttribute("aria-pressed", "false");
+    btn.setAttribute("aria-label", "Save ayah");
+    btn.title = "Save ayah";
+    return;
+  }
   const saved = isAyahSaved(currentSurahNumber, currentAyahInSurah);
   btn.setAttribute("aria-pressed", String(saved));
   const label = saved ? "Unsave ayah" : "Save ayah";
@@ -1362,13 +1789,30 @@ function renderSavedReflectionsList() {
 
 async function viewSavedAyah(surah, ayah) {
   closeSavedMenu();
-  if (verseTransitionLock) return;
-  await runVerseTransition(async () => {
-    ayahHistory.push(currentAyahNumber);
-    const data = await fetchAyah(`${surah}:${ayah}`);
-    if (data) applyVerseData(data);
-    updatePrevButtonState();
-  });
+  const feed = getReelFeed();
+  if (!feed) return;
+
+  const existing = getSlides().find(
+    (slide) =>
+      slide.dataset.surahNumber === String(surah) &&
+      slide.dataset.ayahInSurah === String(ayah),
+  );
+  if (existing) {
+    existing.scrollIntoView({ block: "start" });
+    return;
+  }
+
+  const data = await fetchAyah(`${surah}:${ayah}`);
+  if (!data) {
+    showSaveToast("Couldn't open that ayah. Please try again.");
+    return;
+  }
+
+  const slide = createSlideShell();
+  fillSlide(slide, data);
+  const current = getActiveSlide();
+  mountSlide(slide, current?.nextSibling || null);
+  slide.scrollIntoView({ block: "start" });
 }
 
 function hasSeenHeaderWizard() {
@@ -1523,6 +1967,8 @@ function openSavedMenu() {
   const trigger = document.getElementById("savedMenuTrigger");
   const dropdown = document.getElementById("savedMenuDropdown");
   if (!menu || !trigger || !dropdown) return;
+  closeMoreMenu();
+  closeLanguageMenu();
   closeHeaderTooltip("savedMenuHint");
   renderSavedReflectionsList();
   menu.dataset.open = "true";
@@ -1612,20 +2058,3 @@ function initSavedAyahs() {
 
   renderSavedReflectionsList();
 }
-
-function updateDateTime() {
-  const date = new Date();
-  const day = date
-    .toLocaleDateString(undefined, { weekday: "long" })
-    .slice(0, 3);
-  const month = date.toLocaleDateString(undefined, { month: "long" });
-  const year = date.getFullYear().toString().slice(2);
-  const dateNum = date.getDate();
-
-  const dateString = `${day}, ${dateNum} ${month} '${year}`;
-
-  document.getElementById("datetime").textContent = dateString;
-}
-
-updateDateTime();
-setInterval(updateDateTime, 60000);

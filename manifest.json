@@ -13,8 +13,8 @@
       "type": "image/png"
     }
   ],
-  "start_url": "https://www.ayahday.cc/",
-  "scope": "https://www.ayahday.cc/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#020617",
