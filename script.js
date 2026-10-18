@@ -13,6 +13,12 @@ const LANGUAGE_LABELS = {
   "ur.maududi": "Urdu",
   "ms.basmeih": "Malay",
 };
+const LANGUAGE_CODES = {
+  "en.asad": "EN",
+  [ARABIC_EDITION]: "AR",
+  "ur.maududi": "UR",
+  "ms.basmeih": "MS",
+};
 const WHATS_NEW_APP_VERSION = "1.0.0";
 /**
  * App updates — newest first. Bump WHATS_NEW_RELEASE_ID when adding an entry.
@@ -124,33 +130,6 @@ const WHATS_NEW_RELEASES = [
         title: "Ayat tersimpan",
         description:
           "Simpan sehingga 5 ayat dengan ikon penanda pada setiap ayat. Buka senarai dari ikon penanda di atas.",
-      },
-    },
-  },
-  {
-    id: "smooth-verse-transitions",
-    icon: "swipe",
-    theme: "cyan",
-    copy: {
-      en: {
-        title: "Smoother transitions",
-        description:
-          "Fade animations when you swipe, go to next or previous, or change language.",
-      },
-      ur: {
-        title: "نرم منتقل",
-        description:
-          "سوائپ، اگلی/پچھلی آیت، یا زبان بدلنے پر نرم فیڈ اینیمیشن۔",
-      },
-      ar: {
-        title: "انتقالات أنعم",
-        description:
-          "تأثيرات انتقال عند التمرير أو التنقل بين الآيات أو تغيير اللغة.",
-      },
-      ms: {
-        title: "Animasi lebih lancar",
-        description:
-          "Animasi pudar apabila anda leret, ke ayat seterusnya/sebelumnya, atau tukar bahasa.",
       },
     },
   },
@@ -608,7 +587,14 @@ function createSlideShell() {
   slide.className = "reel-slide ayah-day-verse-panel";
   slide.innerHTML = `
     <div class="reel-slide__frame">
-      <div class="reel-slide__verse"></div>
+      <div class="reel-slide__verse-wrap">
+        <div class="reel-slide__verse"></div>
+        <div class="reel-slide__more" hidden aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+            <path d="M6 9.5 12 15.5 18 9.5" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
       <div class="reel-slide__caption">
         <div class="verse-surah-divider" aria-hidden="true"></div>
         <p class="surah"></p>
@@ -779,12 +765,16 @@ function fitSlideVerse(slide) {
   const host = slide?.querySelector(".reel-slide__verse");
   const verse = host?.querySelector(".verse");
   if (!host || !verse) return;
+  const wasOverflowing = host.classList.contains("is-overflowing");
   host.classList.remove("is-overflowing");
   if (host.clientHeight < 40) return;
   verse.style.fontSize = "";
   const maxSize = parseFloat(getComputedStyle(verse).fontSize);
   if (!Number.isFinite(maxSize)) return;
-  if (!verseOverflowsHost(host, verse)) return;
+  if (!verseOverflowsHost(host, verse)) {
+    syncVerseMoreHint(host);
+    return;
+  }
 
   const minSize = 15;
   let low = minSize;
@@ -801,13 +791,33 @@ function fitSlideVerse(slide) {
     }
   }
   verse.style.fontSize = `${fitted}px`;
-  if (!verseOverflowsHost(host, verse)) return;
+  if (!verseOverflowsHost(host, verse)) {
+    syncVerseMoreHint(host);
+    return;
+  }
 
   verse.style.fontSize = `${minSize}px`;
   if (verseOverflowsHost(host, verse)) {
     host.classList.add("is-overflowing");
-    host.scrollTop = 0;
+    if (!wasOverflowing) host.scrollTop = 0;
   }
+  syncVerseMoreHint(host);
+}
+
+function syncVerseMoreHint(host) {
+  if (!host) return;
+  const more = host.parentElement?.querySelector(".reel-slide__more");
+  const overflowing = host.classList.contains("is-overflowing");
+  const atEnd =
+    !overflowing ||
+    host.scrollTop + host.clientHeight >= host.scrollHeight - 12;
+  host.classList.toggle("is-scrolled-end", atEnd);
+  if (more) more.hidden = !overflowing || atEnd;
+  if (host.dataset.moreBound === "1") return;
+  host.dataset.moreBound = "1";
+  host.addEventListener("scroll", () => syncVerseMoreHint(host), {
+    passive: true,
+  });
 }
 
 function fitMountedVerses() {
@@ -1239,9 +1249,15 @@ function initUpdatesModal() {
 
 function syncLanguageMenuUI() {
   const triggerLabel = document.getElementById("language-trigger-label");
+  const trigger = document.getElementById("language-trigger");
   const normalizedLanguage = normalizeLanguage(currentLang);
+  const languageName = LANGUAGE_LABELS[normalizedLanguage] || "English";
   if (triggerLabel) {
-    triggerLabel.textContent = LANGUAGE_LABELS[normalizedLanguage] || "English";
+    triggerLabel.textContent = LANGUAGE_CODES[normalizedLanguage] || "EN";
+  }
+  if (trigger) {
+    trigger.setAttribute("aria-label", `Language: ${languageName}`);
+    trigger.title = languageName;
   }
   document.querySelectorAll(".lang-option").forEach((option) => {
     const isActive = option.dataset.language === normalizedLanguage;
@@ -1802,6 +1818,8 @@ function preloadVerseFonts() {
   const sample = verseFontSample();
   void document.fonts.load('700 1.5rem "Noto Nastaliq Urdu"', sample);
   void document.fonts.load('400 1rem "Noto Nastaliq Urdu"', sample);
+  void document.fonts.load('700 1.5rem "Amiri"', sample);
+  void document.fonts.load('400 1rem "Amiri"', sample);
   void document.fonts.load('700 1.5rem "Noto Sans Arabic"', sample);
   void document.fonts.load('400 1rem "Noto Sans Arabic"', sample);
 }
@@ -1811,8 +1829,8 @@ function ensureVerseFont() {
   const sample = verseFontSample();
   const requests = isArabicEdition()
     ? [
-        document.fonts.load('700 1.5rem "Noto Sans Arabic"', sample),
-        document.fonts.load('400 1rem "Noto Sans Arabic"', sample),
+        document.fonts.load('700 1.5rem "Amiri"', sample),
+        document.fonts.load('400 1rem "Amiri"', sample),
       ]
     : isUrduEdition()
       ? [
@@ -2580,6 +2598,7 @@ function toggleSaveCurrentAyah() {
   updateSaveHeartState();
   animateSaveAyahHeart();
   renderSavedReflectionsList();
+  showSaveToast("Ayah saved");
 }
 
 function initSavedAyahs() {

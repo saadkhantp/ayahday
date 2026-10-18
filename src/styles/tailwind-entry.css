@@ -1,3 +1,5 @@
+@import "@fontsource/amiri/400.css";
+@import "@fontsource/amiri/700.css";
 @import "@fontsource/noto-sans-arabic/400.css";
 @import "@fontsource/noto-sans-arabic/700.css";
 @import "@fontsource/noto-nastaliq-urdu/400.css";
@@ -583,8 +585,9 @@
     padding-top: max(0.35rem, env(safe-area-inset-top));
     background: linear-gradient(
       to bottom,
-      hsl(var(--app-bg-top) / 0.94) 0%,
-      hsl(var(--app-bg-top) / 0.72) 58%,
+      hsl(var(--app-bg-top)) 0%,
+      hsl(var(--app-bg-top)) 58%,
+      hsl(var(--app-bg-top) / 0.94) 76%,
       transparent 100%
     );
   }
@@ -686,10 +689,11 @@
 
   .reel-slide__frame {
     @apply relative flex h-full w-full max-w-2xl flex-col;
-    padding-top: max(5.25rem, calc(env(safe-area-inset-top) + 4.75rem));
+    --reel-gutter-right: 6.4rem;
+    padding-top: max(6.5rem, calc(env(safe-area-inset-top) + 6rem));
     padding-bottom: max(4.75rem, calc(env(safe-area-inset-bottom) + 4.25rem));
     padding-left: 1.15rem;
-    padding-right: 4.65rem;
+    padding-right: var(--reel-gutter-right);
   }
 
   @media (min-width: 640px) {
@@ -698,8 +702,36 @@
     }
   }
 
+  .reel-slide__verse-wrap {
+    @apply relative flex min-h-0 flex-1 flex-col;
+  }
+
   .reel-slide__verse {
     @apply flex min-h-0 flex-1 flex-col overflow-hidden;
+  }
+
+  .reel-slide__verse.is-overflowing:not(.is-scrolled-end) {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 calc(100% - 2.75rem),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 calc(100% - 2.75rem),
+      transparent 100%
+    );
+  }
+
+  .reel-slide__more {
+    @apply pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-center pb-0.5 text-slate-600 dark:text-slate-200;
+    height: 2.75rem;
+  }
+
+  .reel-slide__more[hidden] {
+    display: none !important;
   }
 
   .reel-slide__verse .verse {
@@ -721,7 +753,7 @@
   .reel-slide__caption {
     @apply absolute flex flex-col;
     left: 1.15rem;
-    right: 4.65rem;
+    right: var(--reel-gutter-right);
     bottom: max(0.7rem, env(safe-area-inset-bottom));
   }
 
@@ -739,6 +771,10 @@
     .reel-slide__caption {
       left: 2rem;
     }
+  }
+
+  .reel-slide .surah {
+    font-family: "Noto Sans Arabic", sans-serif;
   }
 
   .reel-slide .verse-surah-divider {
@@ -762,7 +798,7 @@
   }
 
   .reel-slide.ayah-day-verse-panel.arabic-style .verse {
-    font-family: "Noto Sans Arabic", sans-serif;
+    font-family: "Amiri", serif;
     font-size: clamp(1.35rem, 4.6vw, 1.85rem);
     line-height: 2.35;
     font-weight: 700;
@@ -1077,6 +1113,14 @@
 
   .reel-actions .lang-trigger {
     @apply size-9 min-h-9 min-w-9 justify-center gap-0 p-0;
+  }
+
+  .reel-actions .lang-trigger .reel-action-btn__svg {
+    display: none;
+  }
+
+  .lang-trigger__code {
+    @apply text-[0.68rem] font-bold leading-none tracking-wide;
   }
 
   #appBootOverlay.app-boot-overlay {

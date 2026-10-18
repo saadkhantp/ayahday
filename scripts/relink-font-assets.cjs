@@ -1,6 +1,6 @@
 /**
  * Fontsource CSS uses url(files/...); paths are relative to each package.
- * Resolve files from node_modules/@fontsource (noto-sans-arabic, noto-nastaliq-urdu) and emit dist/font-files/.
+ * Resolve files from node_modules/@fontsource (amiri, noto-sans-arabic, noto-nastaliq-urdu) and emit dist/font-files/.
  */
 const fs = require("fs");
 const path = require("path");
@@ -11,6 +11,7 @@ const cssPath = path.join(distDir, "app.css");
 const fontDir = path.join(distDir, "font-files");
 
 const searchRoots = [
+  path.join(root, "node_modules/@fontsource/amiri/files"),
   path.join(root, "node_modules/@fontsource/noto-sans-arabic/files"),
   path.join(root, "node_modules/@fontsource/noto-nastaliq-urdu/files"),
 ];

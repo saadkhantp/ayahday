@@ -18,7 +18,7 @@ module.exports = {
         sans: ['"Mulish"', "sans-serif"],
         urduUi: ['"Noto Sans Arabic"', "sans-serif"],
         urduHeader: ['"Noto Nastaliq Urdu"', '"Noto Sans Arabic"', "serif"],
-        naskh: ['"Noto Sans Arabic"', "sans-serif"],
+        naskh: ['"Amiri"', "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
