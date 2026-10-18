@@ -608,6 +608,20 @@
     overflow: hidden;
   }
 
+  .lang-switch-loader {
+    @apply pointer-events-none fixed inset-x-0 bottom-0 z-30 flex items-center justify-center;
+    top: 4.5rem;
+  }
+
+  .lang-switch-loader[hidden] {
+    display: none !important;
+  }
+
+  .reel-slide__verse.is-font-pending,
+  .reel-slide__caption.is-font-pending {
+    visibility: hidden;
+  }
+
   .reel-slide {
     @apply relative box-border flex items-center justify-center;
     height: 100dvh;

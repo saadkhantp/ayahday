@@ -63,9 +63,14 @@
         align-items: center;
         justify-content: center;
         padding: 1.5rem;
+        background: #f8fafc;
         transition:
           opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
           visibility 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      html.dark #appBootOverlay.app-boot-overlay {
+        background: #020617;
       }
 
       #appBootOverlay.app-boot-overlay--hide {
@@ -311,6 +316,13 @@
       </header>
 
       <main id="reelFeed" class="reel-feed" aria-label="Verses"></main>
+      <div id="langSwitchLoader" class="lang-switch-loader" hidden>
+        <div
+          class="app-boot-overlay__spinner"
+          role="status"
+          aria-label="Loading translation"
+        ></div>
+      </div>
 
       <aside class="reel-actions" aria-label="Verse actions">
         <button

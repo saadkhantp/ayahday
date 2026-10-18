@@ -197,7 +197,8 @@ const SHARE_TOOLTIP_MS = 3000;
 let shareTooltipHideTimer = null;
 let shareSnapshotInProgress = false;
 
-const BOOT_OVERLAY_FALLBACK_MS = 3000;
+const BOOT_OVERLAY_FALLBACK_MS = 20000;
+const CLOUD_PROBE_MS = 1200;
 const FEED_ERROR_MESSAGE = "Error fetching verse. Please try again later.";
 let bootOverlayFallbackTimer = null;
 let saveToastHideTimer = null;
@@ -220,6 +221,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     initShareTooltip();
     updateLanguageDisplay();
     initHeaderWizard();
+    preloadVerseFonts();
     } catch (err) {
     console.error("AyahDay boot failed:", err);
     if (!getSlides().length) appendErrorSlide(FEED_ERROR_MESSAGE);
@@ -283,14 +285,29 @@ const FALLBACK_EDITION_FILES = {
 };
 
 let quranCloudDisabled = false;
+let quranSource = "pending";
 let fallbackNoticeShown = false;
 let fallbackChaptersPromise = null;
+let openingAyahPromise = null;
 const fallbackEditionPromises = new Map();
 
-async function fetchAyahFromCloud(ayahRef, requestedLang) {
+function markCloudDown() {
+  quranCloudDisabled = true;
+  quranSource = "fallback";
+  if (!fallbackNoticeShown) {
+    fallbackNoticeShown = true;
+    console.warn(
+      "Al Quran Cloud is unavailable. Loading verses from the backup text.",
+    );
+  }
+}
+
+async function fetchAyahFromCloud(ayahRef, requestedLang, signal) {
+  const init = signal ? { signal } : undefined;
   if (isArabicEdition(requestedLang)) {
     const response = await fetch(
       `${API_CONFIG.url}/${ayahRef}/${ARABIC_EDITION}`,
+      init,
     );
     if (!response.ok) throw new Error("Failed to fetch Ayah");
     const payload = await response.json();
@@ -298,9 +315,11 @@ async function fetchAyahFromCloud(ayahRef, requestedLang) {
   }
   const arabicResponse = await fetch(
     `${API_CONFIG.url}/${ayahRef}/${ARABIC_EDITION}`,
+    init,
   );
   const translationResponse = await fetch(
     `${API_CONFIG.url}/${ayahRef}/${requestedLang}`,
+    init,
   );
   if (!arabicResponse.ok || !translationResponse.ok) {
     throw new Error("Failed to fetch Ayah");
@@ -310,9 +329,9 @@ async function fetchAyahFromCloud(ayahRef, requestedLang) {
   return verseDataFromArabicPayload(arabicData, translationData.data.text);
 }
 
-function loadFallbackChapters() {
+function loadFallbackChapters(signal) {
   if (!fallbackChaptersPromise) {
-    fallbackChaptersPromise = fetch(FALLBACK_CHAPTERS_URL)
+    fallbackChaptersPromise = fetch(FALLBACK_CHAPTERS_URL, { signal })
       .then(async (response) => {
         if (!response.ok) throw new Error("Failed to load chapter list");
         const payload = await response.json();
@@ -326,10 +345,11 @@ function loadFallbackChapters() {
   return fallbackChaptersPromise;
 }
 
-function loadFallbackEdition(editionId) {
+function loadFallbackEdition(editionId, signal) {
   if (!fallbackEditionPromises.has(editionId)) {
     const pending = fetch(
       `${FALLBACK_QURAN_BASE}/editions/${editionId}.min.json`,
+      { signal },
     )
       .then(async (response) => {
         if (!response.ok) throw new Error("Failed to load Quran text");
@@ -371,12 +391,12 @@ function locateAyah(ayahRef, chapters) {
   return null;
 }
 
-async function fetchAyahFromFallback(ayahRef, requestedLang) {
+async function fetchAyahFromFallback(ayahRef, requestedLang, signal) {
   const editionId = FALLBACK_EDITION_FILES[requestedLang];
   if (!editionId) throw new Error("Unsupported edition");
   const [chapters, texts] = await Promise.all([
-    loadFallbackChapters(),
-    loadFallbackEdition(editionId),
+    loadFallbackChapters(signal),
+    loadFallbackEdition(editionId, signal),
   ]);
   const located = locateAyah(ayahRef, chapters);
   const chapter = located && chapters[located.surah - 1];
@@ -400,23 +420,71 @@ async function fetchAyahFromFallback(ayahRef, requestedLang) {
   };
 }
 
+async function raceOpeningAyah(ayahRef, requestedLang) {
+  const cloudAbort = new AbortController();
+  const fallbackAbort = new AbortController();
+  const cloudTimer = setTimeout(() => cloudAbort.abort(), CLOUD_PROBE_MS);
+  const cloudTask = fetchAyahFromCloud(
+    ayahRef,
+    requestedLang,
+    cloudAbort.signal,
+  )
+    .then((data) => ({ source: "cloud", data }))
+    .catch(() => null);
+  const fallbackTask = fetchAyahFromFallback(
+    ayahRef,
+    requestedLang,
+    fallbackAbort.signal,
+  )
+    .then((data) => ({ source: "fallback", data }))
+    .catch(() => null);
+
+  const cloud = await Promise.race([
+    cloudTask,
+    sleep(CLOUD_PROBE_MS).then(() => "timeout"),
+  ]);
+  clearTimeout(cloudTimer);
+
+  if (cloud && cloud !== "timeout" && cloud.data) {
+    quranSource = "cloud";
+    cloudAbort.abort();
+    fallbackAbort.abort();
+    return { ayahRef, lang: requestedLang, data: cloud.data };
+  }
+
+  cloudAbort.abort();
+  markCloudDown();
+  const settled = await fallbackTask;
+  if (!settled?.data) throw new Error("Failed to fetch Ayah");
+  return { ayahRef, lang: requestedLang, data: settled.data };
+}
+
 async function fetchAyah(ayahRef) {
   const requestedLang = currentLang;
   try {
-    if (!quranCloudDisabled) {
+    if (quranSource === "pending") {
+      if (!openingAyahPromise) {
+        openingAyahPromise = raceOpeningAyah(ayahRef, requestedLang).catch(
+          (error) => {
+            openingAyahPromise = null;
+            throw error;
+          },
+        );
+      }
+      const opening = await openingAyahPromise;
+      if (requestedLang !== currentLang) return null;
+      if (opening.ayahRef === String(ayahRef) || opening.ayahRef === ayahRef) {
+        if (opening.lang === requestedLang) return opening.data;
+      }
+    }
+    if (!quranCloudDisabled && quranSource !== "fallback") {
       try {
         const cloud = await fetchAyahFromCloud(ayahRef, requestedLang);
         if (requestedLang !== currentLang) return null;
+        quranSource = "cloud";
         return cloud;
       } catch (error) {
-        quranCloudDisabled = true;
-        if (!fallbackNoticeShown) {
-          fallbackNoticeShown = true;
-          console.warn(
-            "Al Quran Cloud is unavailable. Loading verses from the backup text.",
-            error,
-          );
-        }
+        markCloudDown();
       }
     }
     const fallback = await fetchAyahFromFallback(ayahRef, requestedLang);
@@ -713,6 +781,7 @@ function scheduleBootOverlayFallback() {
   clearBootOverlayFallback();
   bootOverlayFallbackTimer = setTimeout(() => {
     bootOverlayFallbackTimer = null;
+    if (!getSlides().length) appendErrorSlide(FEED_ERROR_MESSAGE);
     revealBootOverlay();
   }, BOOT_OVERLAY_FALLBACK_MS);
 }
@@ -1573,34 +1642,118 @@ async function runShareFromPreview() {
   }
 }
 
-function handleLanguageChange(languageEdition) {
+const LANG_SWITCH_LOADER_MS = 180;
+const VERSE_FONT_WAIT_MS = 8000;
+let langSwitchToken = 0;
+let langSwitchLoaderTimer = null;
+
+function verseFontSample() {
+  return "سُورَةُ یہ پ چ ٹ بِسۡمِ";
+}
+
+function preloadVerseFonts() {
+  if (!document.fonts?.load) return;
+  const sample = verseFontSample();
+  void document.fonts.load('700 1.5rem "Noto Nastaliq Urdu"', sample);
+  void document.fonts.load('400 1rem "Noto Nastaliq Urdu"', sample);
+}
+
+function ensureVerseFont() {
+  if (!document.fonts?.load) return Promise.resolve();
+  const sample = verseFontSample();
+  const requests = isRtlEdition()
+    ? [
+        document.fonts.load('700 1.5rem "Noto Nastaliq Urdu"', sample),
+        document.fonts.load('400 1rem "Noto Nastaliq Urdu"', sample),
+      ]
+    : [document.fonts.load('700 1.5rem "Mulish"', "Ayah")];
+  return Promise.race([
+    Promise.all(requests).catch(() => undefined),
+    sleep(VERSE_FONT_WAIT_MS),
+  ]);
+}
+
+function setVerseFontHold(held) {
+  getSlides().forEach((slide) => {
+    slide
+      .querySelector(".reel-slide__verse")
+      ?.classList.toggle("is-font-pending", held);
+    slide
+      .querySelector(".reel-slide__caption")
+      ?.classList.toggle("is-font-pending", held);
+  });
+}
+
+function showLangSwitchLoader() {
+  const loader = document.getElementById("langSwitchLoader");
+  if (loader) loader.hidden = false;
+  setVerseFontHold(true);
+  setReelScrollPaused(true);
+}
+
+function hideLangSwitchLoader() {
+  if (langSwitchLoaderTimer) {
+    clearTimeout(langSwitchLoaderTimer);
+    langSwitchLoaderTimer = null;
+  }
+  const loader = document.getElementById("langSwitchLoader");
+  if (loader) loader.hidden = true;
+  setVerseFontHold(false);
+  if (!isReelChromeOpen()) setReelScrollPaused(false);
+}
+
+async function handleLanguageChange(languageEdition) {
   const selectedLanguage = normalizeLanguage(languageEdition);
   if (selectedLanguage === currentLang) return;
 
+  const token = ++langSwitchToken;
   currentLang = selectedLanguage;
   localStorage.setItem(LANGUAGE_STORAGE_KEY, currentLang);
   pendingAyahData = null;
   feedAheadFailures = 0;
   syncLanguageMenuUI();
-  updateLanguageDisplay();
-  void refreshMountedSlides();
+  updateLanguageDisplay({ paintSlides: false });
+
+  if (langSwitchLoaderTimer) clearTimeout(langSwitchLoaderTimer);
+  langSwitchLoaderTimer = setTimeout(() => {
+    if (token === langSwitchToken) showLangSwitchLoader();
+  }, LANG_SWITCH_LOADER_MS);
+
+  try {
+    const pairs = await fetchMountedSlideData();
+    await ensureVerseFont();
+    if (token !== langSwitchToken) return;
+    paintMountedSlides(pairs);
+    updateLanguageDisplay();
+    await new Promise((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(resolve)),
+    );
+  } finally {
+    if (token === langSwitchToken) hideLangSwitchLoader();
+  }
 }
 
-async function refreshMountedSlides() {
+async function fetchMountedSlideData() {
   const slides = getSlides().filter(
     (slide) => slide.dataset.ayahNumber && slide.dataset.error !== "true",
   );
-  await Promise.all(
-    slides.map(async (slide) => {
-      const data = await fetchAyah(slide.dataset.ayahNumber);
-      if (data) fillSlide(slide, data);
-    }),
+  return Promise.all(
+    slides.map(async (slide) => ({
+      slide,
+      data: await fetchAyah(slide.dataset.ayahNumber),
+    })),
   );
+}
+
+function paintMountedSlides(pairs) {
+  pairs.forEach(({ slide, data }) => {
+    if (data) fillSlide(slide, data);
+  });
   syncActiveFromSlide(getActiveSlide());
   void ensureFeedAhead();
 }
 
-function updateLanguageDisplay() {
+function updateLanguageDisplay({ paintSlides = true } = {}) {
   const {
     btn: shareBtn,
     tip: shareTooltip,
@@ -1608,10 +1761,12 @@ function updateLanguageDisplay() {
   } = getShareTooltipEls();
   closeShareTooltip();
   syncLanguageMenuUI();
-  getSlides().forEach((slide) => {
-    applySlideLanguage(slide);
-    fitSlideVerse(slide);
-  });
+  if (paintSlides) {
+    getSlides().forEach((slide) => {
+      applySlideLanguage(slide);
+      fitSlideVerse(slide);
+    });
+  }
 
   document.documentElement.dir = "ltr";
   if (isUrduEdition()) {
