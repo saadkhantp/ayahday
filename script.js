@@ -2302,9 +2302,17 @@ function dismissSaveHint() {
     clearTimeout(saveHintTimer);
     saveHintTimer = null;
   }
-  closeHeaderTooltip("saveAyahHint");
+  const hint = document.getElementById("saveAyahHint");
+  if (hint) {
+    hint.classList.remove("save-ayah-hint--open");
+    hint.setAttribute("hidden", "");
+    hint.setAttribute("aria-hidden", "true");
+    hint.style.left = "";
+    hint.style.top = "";
+  }
   document.getElementById("saveAyahBtn")?.removeAttribute("aria-describedby");
   document.removeEventListener("pointerdown", onSaveHintPointerDown);
+  window.removeEventListener("resize", positionSaveHint);
 }
 
 function onSaveHintPointerDown(event) {
@@ -2314,14 +2322,36 @@ function onSaveHintPointerDown(event) {
   dismissSaveHint();
 }
 
+function positionSaveHint() {
+  const hint = document.getElementById("saveAyahHint");
+  const btn = document.getElementById("saveAyahBtn");
+  if (!hint || !btn || hint.hasAttribute("hidden")) return;
+  const rect = btn.getBoundingClientRect();
+  const gap = 10;
+  const width = hint.offsetWidth;
+  const height = hint.offsetHeight;
+  const top = rect.top + (rect.height - height) / 2;
+  const left = Math.max(8, rect.left - width - gap);
+  hint.style.left = `${Math.round(left)}px`;
+  hint.style.top = `${Math.round(top)}px`;
+}
+
 function showSaveHint(message) {
   const hint = document.getElementById("saveAyahHint");
   const btn = document.getElementById("saveAyahBtn");
   if (!hint || !btn) return;
   dismissSaveHint();
-  openHeaderTooltip("saveAyahHint", message);
+  hint.textContent = message;
+  hint.removeAttribute("hidden");
+  hint.setAttribute("aria-hidden", "false");
+  positionSaveHint();
   btn.setAttribute("aria-describedby", "saveAyahHint");
+  requestAnimationFrame(() => {
+    if (hint.hasAttribute("hidden")) return;
+    hint.classList.add("save-ayah-hint--open");
+  });
   document.addEventListener("pointerdown", onSaveHintPointerDown);
+  window.addEventListener("resize", positionSaveHint);
   saveHintTimer = window.setTimeout(dismissSaveHint, SAVE_HINT_MS);
 }
 

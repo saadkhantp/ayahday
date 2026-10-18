@@ -951,6 +951,85 @@
     @apply relative inline-flex;
   }
 
+  /* Fixed to the save button in script.js so it stays beside the bookmark on mobile. */
+  .save-ayah-hint {
+    position: fixed;
+    z-index: 80;
+    left: 0;
+    top: 0;
+    width: max-content;
+    max-width: 11rem;
+    margin: 0;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid rgb(253, 164, 175);
+    border-radius: 0.375rem;
+    background: #fff;
+    color: rgb(159 18 57);
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.25;
+    text-align: center;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+    transition: opacity 180ms ease;
+  }
+
+  html.dark .save-ayah-hint {
+    border-color: rgb(251, 113, 133);
+    background: rgb(15 23 42);
+    color: rgb(255 228 230);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  }
+
+  .save-ayah-hint--open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .save-ayah-hint[hidden] {
+    display: none !important;
+  }
+
+  .save-ayah-hint::before,
+  .save-ayah-hint::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: #fff;
+    box-shadow: none;
+    transform: translateY(-50%);
+    clip-path: polygon(0 0, 0 100%, 100% 50%);
+  }
+
+  /* Outer triangle is the border color; inner triangle is the fill. */
+  .save-ayah-hint::before {
+    right: -7px;
+    width: 9px;
+    height: 9px;
+    background: rgb(253, 164, 175);
+  }
+
+  .save-ayah-hint::after {
+    right: -5px;
+    background: #fff;
+  }
+
+  html.dark .save-ayah-hint::before {
+    background: rgb(251, 113, 133);
+  }
+
+  html.dark .save-ayah-hint::after {
+    background: rgb(15 23 42);
+  }
+
   .reel-actions .save-ayah-btn {
     @apply text-rose-500 hover:text-rose-600 dark:text-rose-300 dark:hover:text-rose-200;
   }
@@ -1053,30 +1132,19 @@
   }
 
   .reel-actions .header-tooltip--more,
-  .reel-actions .header-tooltip--recite,
-  .reel-actions .header-tooltip--save {
+  .reel-actions .header-tooltip--recite {
     @apply bottom-auto left-auto right-[calc(100%+0.45rem)] top-1/2 max-w-[11rem] -translate-y-1/2 whitespace-nowrap border-cyan-200/80 text-cyan-800 dark:border-cyan-400/30 dark:text-cyan-100/95;
   }
 
-  .reel-actions .header-tooltip--save {
-    @apply border-rose-200/80 text-rose-800 dark:border-rose-300/30 dark:text-rose-100/95;
-  }
-
   .reel-actions .header-tooltip--more.header-tooltip--open,
-  .reel-actions .header-tooltip--recite.header-tooltip--open,
-  .reel-actions .header-tooltip--save.header-tooltip--open {
+  .reel-actions .header-tooltip--recite.header-tooltip--open {
     transform: translateY(-50%);
   }
 
   .reel-actions .header-tooltip--more::before,
-  .reel-actions .header-tooltip--recite::before,
-  .reel-actions .header-tooltip--save::before {
+  .reel-actions .header-tooltip--recite::before {
     @apply -right-1 top-1/2 border-b border-r border-l-0 border-t-0 border-cyan-200/80 dark:border-cyan-400/30;
     transform: translateY(-50%) rotate(-45deg);
-  }
-
-  .reel-actions .header-tooltip--save::before {
-    @apply border-rose-200/80 dark:border-rose-300/30;
   }
 
   .recite-btn--pulse {
