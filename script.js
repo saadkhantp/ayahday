@@ -192,6 +192,10 @@ const API_CONFIG = {
 const RECITE_AUDIO_BASE =
   "https://cdn.islamic.network/quran/audio/128/ar.alafasy";
 const RECITE_SETTLE_MS = 200;
+const RECITE_LOAD_TIMEOUT_MS = 15000;
+const RECITE_HINT_SEEN_KEY = "ayahday-recite-hint-seen";
+const RECITE_HINT_MS = 4000;
+const RECITE_HINT_TEXT = "Listen to this ayah";
 const RECITE_RING_LENGTH = 119.381;
 const RECITE_LABELS = {
   loading: "Loading recitation",
@@ -217,8 +221,11 @@ let saveToastHideTimer = null;
 let headerWizardAbort = null;
 let reciteAudio = null;
 let reciteLoadTimer = null;
+let reciteLoadTimeout = null;
 let reciteGeneration = 0;
 let reciteTargetAyah = null;
+let reciteHintTimer = null;
+let reciteHintWaitingForWizard = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
   scheduleBootOverlayFallback();
@@ -1930,6 +1937,15 @@ function setReciteUi(state, progress) {
     const amount = Math.max(0, Math.min(1, progress));
     ring.style.strokeDashoffset = `${RECITE_RING_LENGTH * (1 - amount)}px`;
   }
+  if (state === "ready") maybeShowReciteHint();
+  else if (state === "playing") dismissReciteHint({ persist: true });
+  else dismissReciteHint();
+}
+
+function clearReciteLoadTimeout() {
+  if (!reciteLoadTimeout) return;
+  clearTimeout(reciteLoadTimeout);
+  reciteLoadTimeout = null;
 }
 
 function stopRecitation() {
@@ -1937,6 +1953,7 @@ function stopRecitation() {
     clearTimeout(reciteLoadTimer);
     reciteLoadTimer = null;
   }
+  clearReciteLoadTimeout();
   reciteGeneration += 1;
   reciteTargetAyah = null;
   const audio = reciteAudio;
@@ -1945,6 +1962,19 @@ function stopRecitation() {
   audio.pause();
   audio.removeAttribute("src");
   audio.load();
+}
+
+function failRecitationLoad() {
+  clearReciteLoadTimeout();
+  reciteGeneration += 1;
+  const audio = reciteAudio;
+  reciteAudio = null;
+  if (audio) {
+    audio.pause();
+    audio.removeAttribute("src");
+    audio.load();
+  }
+  setReciteUi("error");
 }
 
 function updateReciteProgress(audio) {
@@ -1974,6 +2004,7 @@ function attachRecitation(ayahNumber, generation) {
   });
   audio.addEventListener("canplay", () => {
     if (!stillCurrent()) return;
+    clearReciteLoadTimeout();
     setReciteUi("ready", 1);
   });
   audio.addEventListener("playing", () => {
@@ -1988,10 +2019,23 @@ function attachRecitation(ayahNumber, generation) {
   });
   audio.addEventListener("error", () => {
     if (!stillCurrent()) return;
+    clearReciteLoadTimeout();
     setReciteUi("error");
   });
 
+  if (navigator.onLine === false) {
+    setReciteUi("error");
+    return;
+  }
+
   audio.src = reciteUrl(ayahNumber);
+  reciteLoadTimeout = window.setTimeout(() => {
+    reciteLoadTimeout = null;
+    if (!stillCurrent()) return;
+    const wrap = document.querySelector(".recite-btn-wrap");
+    if (wrap?.dataset.state !== "loading") return;
+    failRecitationLoad();
+  }, RECITE_LOAD_TIMEOUT_MS);
 }
 
 function queueRecitation(ayahNumber) {
@@ -2021,6 +2065,63 @@ function syncRecitationToSlide(slide) {
   }
   if (ayahNumber === reciteTargetAyah && (reciteAudio || reciteLoadTimer)) return;
   queueRecitation(ayahNumber);
+}
+
+function hasSeenReciteHint() {
+  return localStorage.getItem(RECITE_HINT_SEEN_KEY) === "1";
+}
+
+function markReciteHintSeen() {
+  localStorage.setItem(RECITE_HINT_SEEN_KEY, "1");
+}
+
+function dismissReciteHint({ persist = false } = {}) {
+  const hint = document.getElementById("reciteHint");
+  const open = hint?.classList.contains("header-tooltip--open");
+  if (!open && !reciteHintTimer) return;
+  if (reciteHintTimer) {
+    clearTimeout(reciteHintTimer);
+    reciteHintTimer = null;
+  }
+  closeHeaderTooltip("reciteHint");
+  document.getElementById("reciteBtn")?.removeAttribute("aria-describedby");
+  document.getElementById("reciteBtn")?.classList.remove("recite-btn--pulse");
+  document.removeEventListener("pointerdown", onReciteHintPointerDown);
+  if (persist && open) markReciteHintSeen();
+}
+
+function onReciteHintPointerDown(event) {
+  if (event.target instanceof Element && event.target.closest("#reciteBtn")) return;
+  dismissReciteHint({ persist: true });
+}
+
+function openReciteHint() {
+  if (hasSeenReciteHint()) return;
+  const hint = document.getElementById("reciteHint");
+  const btn = document.getElementById("reciteBtn");
+  if (!hint || !btn || hint.classList.contains("header-tooltip--open")) return;
+  openHeaderTooltip("reciteHint", RECITE_HINT_TEXT);
+  btn.setAttribute("aria-describedby", "reciteHint");
+  if (!prefersReducedMotion()) {
+    btn.classList.remove("recite-btn--pulse");
+    void btn.offsetWidth;
+    btn.classList.add("recite-btn--pulse");
+  }
+  document.addEventListener("pointerdown", onReciteHintPointerDown);
+  if (reciteHintTimer) clearTimeout(reciteHintTimer);
+  reciteHintTimer = window.setTimeout(
+    () => dismissReciteHint({ persist: true }),
+    RECITE_HINT_MS,
+  );
+}
+
+function maybeShowReciteHint() {
+  if (hasSeenReciteHint()) return;
+  if (headerWizardAbort && !headerWizardAbort.cancelled) {
+    reciteHintWaitingForWizard = true;
+    return;
+  }
+  openReciteHint();
 }
 
 function onReciteClick() {
@@ -2173,6 +2274,7 @@ function openHeaderTooltip(hintId, text) {
   hint.removeAttribute("hidden");
   hint.setAttribute("aria-hidden", "false");
   requestAnimationFrame(() => {
+    if (hint.hasAttribute("hidden")) return;
     hint.classList.add("header-tooltip--open");
   });
 }
@@ -2240,6 +2342,12 @@ async function runHeaderWizard() {
     document.removeEventListener("pointerdown", dismiss);
     document.removeEventListener("keydown", dismiss);
     headerWizardAbort = null;
+    if (reciteHintWaitingForWizard) {
+      reciteHintWaitingForWizard = false;
+      if (document.querySelector(".recite-btn-wrap")?.dataset.state === "ready") {
+        maybeShowReciteHint();
+      }
+    }
   }
 }
 
