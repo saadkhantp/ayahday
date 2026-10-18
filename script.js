@@ -189,6 +189,18 @@ const API_CONFIG = {
   url: "https://api.alquran.cloud/v1/ayah",
 };
 
+const RECITE_AUDIO_BASE =
+  "https://cdn.islamic.network/quran/audio/128/ar.alafasy";
+const RECITE_SETTLE_MS = 200;
+const RECITE_RING_LENGTH = 119.381;
+const RECITE_LABELS = {
+  loading: "Loading recitation",
+  ready: "Play recitation",
+  playing: "Pause recitation",
+  error: "Retry recitation",
+  idle: "Recitation unavailable",
+};
+
 const SHARE_APP_URL = "https://www.ayahday.cc/";
 const SHARE_SNAPSHOT_FOOTER =
   "AyahDay.cc - Daily Quranic verses in Multiple Languages";
@@ -203,6 +215,10 @@ const FEED_ERROR_MESSAGE = "Error fetching verse. Please try again later.";
 let bootOverlayFallbackTimer = null;
 let saveToastHideTimer = null;
 let headerWizardAbort = null;
+let reciteAudio = null;
+let reciteLoadTimer = null;
+let reciteGeneration = 0;
+let reciteTargetAyah = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
   scheduleBootOverlayFallback();
@@ -637,6 +653,7 @@ function syncActiveFromSlide(slide) {
     ? Number(slide.dataset.ayahInSurah)
     : null;
   updateSaveHeartState();
+  syncRecitationToSlide(slide);
 }
 
 function activateSlide(slide) {
@@ -812,6 +829,7 @@ function getRandomAyahNumber() {
 }
 
 function addEventListeners() {
+  document.getElementById("reciteBtn")?.addEventListener("click", onReciteClick);
   document
     .getElementById("shareBtn")
     .addEventListener("click", openSharePreview);
@@ -1467,8 +1485,9 @@ function fillSharePreviewCaptureRoot(root) {
     root.appendChild(err);
   } else {
     const ayah = document.createElement("p");
-    ayah.className =
-      isUrdu || isArabic
+    ayah.className = isArabic
+      ? `font-naskh mt-3 text-base font-bold leading-[2.2] ${shareText} sm:text-lg`
+      : isUrdu
         ? `font-urduHeader mt-3 text-base font-bold leading-7 ${shareText} sm:text-lg`
         : `mt-3 text-base font-bold leading-snug ${shareText} first-letter:uppercase sm:text-lg`;
     ayah.textContent = verseEl?.textContent ?? "";
@@ -1656,17 +1675,24 @@ function preloadVerseFonts() {
   const sample = verseFontSample();
   void document.fonts.load('700 1.5rem "Noto Nastaliq Urdu"', sample);
   void document.fonts.load('400 1rem "Noto Nastaliq Urdu"', sample);
+  void document.fonts.load('700 1.5rem "Noto Sans Arabic"', sample);
+  void document.fonts.load('400 1rem "Noto Sans Arabic"', sample);
 }
 
 function ensureVerseFont() {
   if (!document.fonts?.load) return Promise.resolve();
   const sample = verseFontSample();
-  const requests = isRtlEdition()
+  const requests = isArabicEdition()
     ? [
-        document.fonts.load('700 1.5rem "Noto Nastaliq Urdu"', sample),
-        document.fonts.load('400 1rem "Noto Nastaliq Urdu"', sample),
+        document.fonts.load('700 1.5rem "Noto Sans Arabic"', sample),
+        document.fonts.load('400 1rem "Noto Sans Arabic"', sample),
       ]
-    : [document.fonts.load('700 1.5rem "Mulish"', "Ayah")];
+    : isUrduEdition()
+      ? [
+          document.fonts.load('700 1.5rem "Noto Nastaliq Urdu"', sample),
+          document.fonts.load('400 1rem "Noto Nastaliq Urdu"', sample),
+        ]
+      : [document.fonts.load('700 1.5rem "Mulish"', "Ayah")];
   return Promise.race([
     Promise.all(requests).catch(() => undefined),
     sleep(VERSE_FONT_WAIT_MS),
@@ -1864,6 +1890,153 @@ function removeSavedAyah(surah, ayah) {
 
 function formatSavedAyahLabel(surah, ayah) {
   return `Surah ${surah}, Ayah ${ayah}`;
+}
+
+function reciteUrl(ayahNumber) {
+  return `${RECITE_AUDIO_BASE}/${ayahNumber}.mp3`;
+}
+
+function bufferRatio(audio) {
+  const duration = audio.duration;
+  if (!Number.isFinite(duration) || duration <= 0) return null;
+  if (!audio.buffered || audio.buffered.length === 0) return 0;
+  let end = 0;
+  for (let i = 0; i < audio.buffered.length; i += 1) {
+    end = Math.max(end, audio.buffered.end(i));
+  }
+  return Math.max(0, Math.min(1, end / duration));
+}
+
+function setReciteUi(state, progress) {
+  const wrap = document.querySelector(".recite-btn-wrap");
+  const btn = document.getElementById("reciteBtn");
+  if (!wrap || !btn) return;
+  wrap.dataset.state = state;
+  const label = RECITE_LABELS[state] || RECITE_LABELS.loading;
+  btn.setAttribute("aria-label", label);
+  btn.title = label;
+  btn.setAttribute("aria-pressed", state === "playing" ? "true" : "false");
+  const busy = state === "loading";
+  btn.setAttribute("aria-busy", busy ? "true" : "false");
+  btn.disabled = state === "loading" || state === "idle";
+  const ring = wrap.querySelector(".recite-btn-ring__progress");
+  if (state === "loading" && typeof progress !== "number") {
+    wrap.classList.add("is-indeterminate");
+    ring?.style.removeProperty("stroke-dashoffset");
+    return;
+  }
+  wrap.classList.remove("is-indeterminate");
+  if (ring && typeof progress === "number") {
+    const amount = Math.max(0, Math.min(1, progress));
+    ring.style.strokeDashoffset = `${RECITE_RING_LENGTH * (1 - amount)}px`;
+  }
+}
+
+function stopRecitation() {
+  if (reciteLoadTimer) {
+    clearTimeout(reciteLoadTimer);
+    reciteLoadTimer = null;
+  }
+  reciteGeneration += 1;
+  reciteTargetAyah = null;
+  const audio = reciteAudio;
+  reciteAudio = null;
+  if (!audio) return;
+  audio.pause();
+  audio.removeAttribute("src");
+  audio.load();
+}
+
+function updateReciteProgress(audio) {
+  const wrap = document.querySelector(".recite-btn-wrap");
+  if (!wrap || wrap.dataset.state !== "loading") return;
+  const amount = bufferRatio(audio);
+  if (amount == null) setReciteUi("loading");
+  else setReciteUi("loading", amount);
+}
+
+function attachRecitation(ayahNumber, generation) {
+  const audio = new Audio();
+  audio.preload = "auto";
+  reciteAudio = audio;
+  reciteTargetAyah = ayahNumber;
+
+  const stillCurrent = () => generation === reciteGeneration;
+
+  audio.addEventListener("progress", () => {
+    if (stillCurrent()) updateReciteProgress(audio);
+  });
+  audio.addEventListener("loadedmetadata", () => {
+    if (stillCurrent()) updateReciteProgress(audio);
+  });
+  audio.addEventListener("durationchange", () => {
+    if (stillCurrent()) updateReciteProgress(audio);
+  });
+  audio.addEventListener("canplay", () => {
+    if (!stillCurrent()) return;
+    setReciteUi("ready", 1);
+  });
+  audio.addEventListener("playing", () => {
+    if (stillCurrent()) setReciteUi("playing");
+  });
+  audio.addEventListener("pause", () => {
+    if (!stillCurrent() || audio.ended) return;
+    setReciteUi("ready");
+  });
+  audio.addEventListener("ended", () => {
+    if (stillCurrent()) setReciteUi("ready");
+  });
+  audio.addEventListener("error", () => {
+    if (!stillCurrent()) return;
+    setReciteUi("error");
+  });
+
+  audio.src = reciteUrl(ayahNumber);
+}
+
+function queueRecitation(ayahNumber) {
+  stopRecitation();
+  reciteTargetAyah = ayahNumber;
+  setReciteUi("loading");
+  const generation = reciteGeneration;
+  reciteLoadTimer = window.setTimeout(() => {
+    reciteLoadTimer = null;
+    if (generation !== reciteGeneration) return;
+    attachRecitation(ayahNumber, generation);
+  }, RECITE_SETTLE_MS);
+}
+
+function syncRecitationToSlide(slide) {
+  const ayahNumber = Number(slide?.dataset.ayahNumber);
+  const valid =
+    slide &&
+    slide.dataset.error !== "true" &&
+    Number.isInteger(ayahNumber) &&
+    ayahNumber >= 1 &&
+    ayahNumber <= 6236;
+  if (!valid) {
+    stopRecitation();
+    setReciteUi("idle");
+    return;
+  }
+  if (ayahNumber === reciteTargetAyah && (reciteAudio || reciteLoadTimer)) return;
+  queueRecitation(ayahNumber);
+}
+
+function onReciteClick() {
+  const state = document.querySelector(".recite-btn-wrap")?.dataset.state;
+  if (state === "playing") {
+    reciteAudio?.pause();
+    return;
+  }
+  if (state === "ready") {
+    const playAttempt = reciteAudio?.play();
+    playAttempt?.catch(() => setReciteUi("error"));
+    return;
+  }
+  if (state === "error" && Number.isInteger(reciteTargetAyah)) {
+    queueRecitation(reciteTargetAyah);
+  }
 }
 
 function updateSaveHeartState() {

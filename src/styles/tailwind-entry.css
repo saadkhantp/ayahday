@@ -197,7 +197,10 @@
   }
 
   .ayah-day-verse-panel.arabic-style .verse {
-    @apply font-urduHeader text-lg leading-8 text-slate-800 sm:text-xl sm:leading-9 dark:text-solar-slate-50;
+    @apply font-naskh text-lg font-bold leading-[2.35] text-slate-800 dark:text-solar-slate-50;
+    word-break: normal;
+    overflow-wrap: normal;
+    line-break: strict;
   }
 
   .ayah-day-verse-panel.arabic-style .verse:first-letter {
@@ -689,7 +692,20 @@
     direction: rtl;
     text-align: right;
     font-size: clamp(1.125rem, 2vw, 1.5rem);
+  }
+
+  .reel-slide.urdu-style .verse {
     line-height: 3.2;
+  }
+
+  .reel-slide.ayah-day-verse-panel.arabic-style .verse {
+    font-family: "Noto Sans Arabic", sans-serif;
+    font-size: clamp(1.35rem, 4.6vw, 1.85rem);
+    line-height: 2.35;
+    font-weight: 700;
+    word-break: normal;
+    overflow-wrap: normal;
+    line-break: strict;
   }
 
   .reel-slide.urdu-style .reel-slide__caption,
@@ -743,6 +759,93 @@
 
   .reel-action-btn--share {
     @apply bg-[#075E54] text-white hover:bg-[#0d8073];
+  }
+
+  .recite-btn-wrap {
+    @apply relative inline-flex size-9 shrink-0 items-center justify-center;
+  }
+
+  .recite-btn-ring {
+    position: absolute;
+    inset: -3px;
+    width: calc(100% + 6px);
+    height: calc(100% + 6px);
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .recite-btn-ring__track,
+  .recite-btn-ring__progress {
+    fill: none;
+    stroke-width: 2.25;
+  }
+
+  .recite-btn-ring__track {
+    stroke: currentColor;
+    opacity: 0.28;
+  }
+
+  .recite-btn-ring__progress {
+    stroke: rgb(14 165 233);
+    stroke-linecap: round;
+    stroke-dasharray: 119.381px;
+    stroke-dashoffset: 119.381px;
+    transform: rotate(-90deg);
+    transform-origin: center;
+    transition: stroke-dashoffset 150ms linear;
+  }
+
+  html.dark .recite-btn-ring__progress {
+    stroke: rgb(56 189 248);
+  }
+
+  .recite-btn-wrap.is-indeterminate .recite-btn-ring__progress {
+    stroke-dasharray: 30px 89.381px;
+    stroke-dashoffset: 0;
+    transition: none;
+    animation: recite-ring-spin 0.9s linear infinite;
+  }
+
+  .recite-btn-wrap:not([data-state="loading"]) .recite-btn-ring {
+    visibility: hidden;
+  }
+
+  .recite-btn__pause {
+    display: none;
+  }
+
+  .recite-btn-wrap[data-state="playing"] .recite-btn__speaker {
+    display: none;
+  }
+
+  .recite-btn-wrap[data-state="playing"] .recite-btn__pause {
+    display: block;
+  }
+
+  .recite-btn-wrap[data-state="playing"] .recite-btn {
+    @apply text-sky-600 dark:text-sky-300;
+  }
+
+  .recite-btn-wrap[data-state="error"] .recite-btn {
+    @apply text-slate-400 dark:text-slate-500;
+  }
+
+  .recite-btn-wrap[data-state="idle"] .recite-btn {
+    @apply text-slate-400 opacity-60 dark:text-slate-500;
+  }
+
+  .recite-btn-wrap .recite-btn:disabled,
+  .recite-btn-wrap .recite-btn:disabled:hover {
+    transform: none;
+  }
+
+  @keyframes recite-ring-spin {
+    from {
+      transform: rotate(-90deg);
+    }
+    to {
+      transform: rotate(270deg);
+    }
   }
 
   .reel-actions .save-ayah-btn {
