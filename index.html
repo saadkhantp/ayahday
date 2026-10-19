@@ -215,17 +215,24 @@
       </div>
     </div>
     <div class="theme reel-app">
+      <div id="sceneBg" class="scene-bg" hidden aria-hidden="true">
+        <div class="scene-bg__motion">
+          <div id="sceneBgPhotoA" class="scene-bg__photo"></div>
+          <div id="sceneBgPhotoB" class="scene-bg__photo"></div>
+        </div>
+        <div class="scene-bg__wash"></div>
+      </div>
       <header class="reel-header">
         <div class="reel-header__bar">
           <div class="min-w-0">
             <h1
-              class="element-to-hide font-logo m-0 text-2xl tracking-tight text-gradient-solar sm:text-3xl"
+              class="element-to-hide font-logo m-0 text-[0.95rem] leading-none tracking-tight text-gradient-solar sm:text-base"
               id="gradientLogo"
             >
               AyahDay
             </h1>
             <p
-              class="app-tagline element-to-hide mt-0.5 text-xs font-medium"
+              class="app-tagline element-to-hide mt-px text-[0.625rem] font-medium leading-none"
               id="tagline"
             >
               Daily Quranic Verses
@@ -399,6 +406,45 @@
             role="tooltip"
             hidden
           ></span>
+        </span>
+        <span class="scene-btn-wrap">
+        <button
+          type="button"
+          id="sceneBtn"
+          class="reel-action-btn"
+          aria-label="Background"
+          title="Background"
+          aria-haspopup="dialog"
+          aria-expanded="false"
+          aria-pressed="false"
+          aria-busy="false"
+          aria-controls="sceneSheet"
+        >
+          <svg
+            class="reel-action-btn__svg"
+            viewBox="0 0 24 24"
+            width="22"
+            height="22"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="m3 17 5.2-6.2a1 1 0 0 1 1.5 0L13 14.5 15.2 12a1 1 0 0 1 1.5.1L21 17" />
+            <circle cx="8" cy="8" r="1.35" />
+            <path d="M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" />
+          </svg>
+        </button>
+          <span id="sceneBtnSpinner" class="scene-btn-spinner" hidden></span>
+          <span
+            id="sceneLoadHint"
+            class="header-tooltip header-tooltip--recite"
+            role="status"
+            hidden
+          >Couldn't load background</span>
         </span>
         <span class="save-ayah-wrap">
         <button
@@ -676,6 +722,43 @@
                 Recitation by Mishary Rashid Alafasy, via islamic.network
               </p>
             </div>
+          </div>
+        </div>
+      </div>
+      <div
+        id="sceneSheet"
+        class="more-sheet scene-sheet"
+        data-open="false"
+        hidden
+        aria-hidden="true"
+      >
+        <button
+          type="button"
+          id="sceneSheetBackdrop"
+          class="more-sheet__backdrop"
+          aria-label="Close background"
+          tabindex="-1"
+        ></button>
+        <div
+          id="sceneSheetPanel"
+          class="more-sheet__panel"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="sceneSheetTitle"
+          tabindex="-1"
+        >
+          <div class="more-sheet__grab">
+            <span class="more-sheet__handle" aria-hidden="true"></span>
+          </div>
+          <h2 id="sceneSheetTitle" class="scene-sheet__title">Background</h2>
+          <div class="more-sheet__body">
+            <div
+              id="sceneGrid"
+              class="scene-grid"
+              role="listbox"
+              aria-label="Backgrounds"
+            ></div>
+            <p class="scene-sheet__credit">Photos from Pexels</p>
           </div>
         </div>
       </div>

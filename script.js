@@ -269,6 +269,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     initThemeToggle();
     initLanguageSelect();
     initUpdatesModal();
+    initSceneBackground();
     initReelFeed();
     const bootData = await fetchAyah(currentAyahNumber);
     const firstSlide = bootData
@@ -734,6 +735,7 @@ function initReelFeed() {
       closeLanguageMenu();
       closeMoreMenu();
       closeSavedMenu();
+      closeSceneSheet();
     },
     { passive: true },
   );
@@ -878,6 +880,7 @@ function isReelChromeOpen() {
   if (document.getElementById("language-menu")?.dataset.open === "true") {
     return true;
   }
+  if (isSceneSheetOpen()) return true;
   return false;
 }
 
@@ -1013,6 +1016,12 @@ function addEventListeners() {
       (moreMenu && moreMenu.contains(event.target)) ||
       (moreSheet && moreSheet.contains(event.target));
     if (!insideMore) closeMoreMenu();
+    const sceneBtn = document.getElementById("sceneBtn");
+    const sceneSheet = document.getElementById("sceneSheet");
+    const insideScene =
+      (sceneBtn && sceneBtn.contains(event.target)) ||
+      (sceneSheet && sceneSheet.contains(event.target));
+    if (!insideScene) closeSceneSheet();
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
@@ -1026,6 +1035,7 @@ function addEventListeners() {
       closeSavedMenu();
       closeLanguageMenu();
       closeMoreMenu();
+      closeSceneSheet();
       return;
     }
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
@@ -1104,7 +1114,7 @@ function syncUpdatesBellBadge() {
   const button = document.getElementById("moreMenuBtn");
   const dot = document.getElementById("moreMenuWhatsNewDot");
   const unseen = hasUnseenUpdates();
-  button?.classList.toggle("header-icon-btn--unread", unseen);
+  button?.classList.remove("header-icon-btn--unread");
   if (dot) dot.hidden = !unseen;
 }
 
@@ -1184,6 +1194,7 @@ function openUpdatesModal() {
   closeSavedMenu();
   closeLanguageMenu();
   closeMoreMenu();
+  closeSceneSheet();
   updateUpdatesModalChrome();
   renderUpdatesModalCards();
   modal.hidden = false;
@@ -1279,6 +1290,7 @@ function toggleLanguageMenu() {
   }
   closeMoreMenu();
   closeSavedMenu();
+  closeSceneSheet();
   languageMenu.dataset.open = "true";
   menuContent.hidden = false;
   trigger.setAttribute("aria-expanded", "true");
@@ -1310,6 +1322,7 @@ function openMoreMenu() {
   if (!menu || !trigger || !sheet || !panel) return;
   closeSavedMenu();
   closeLanguageMenu();
+  closeSceneSheet();
   closeHeaderTooltip("moreMenuHint");
   moreSheetMotion += 1;
   panel.classList.remove("more-sheet__panel--dragging");
@@ -1341,7 +1354,8 @@ function closeMoreMenu() {
   const updatesModal = document.getElementById("updatesModal");
   if (
     (!shareModal || shareModal.hidden) &&
-    (!updatesModal || updatesModal.hidden)
+    (!updatesModal || updatesModal.hidden) &&
+    !isSceneSheetOpen()
   ) {
     setReelScrollPaused(false);
   }
@@ -1392,9 +1406,7 @@ function snapMoreSheetBack() {
   panel.addEventListener("transitionend", clear);
 }
 
-function initMoreSheetDrag() {
-  const { sheet, panel } = getMoreSheetParts();
-  const backdrop = document.getElementById("moreMenuBackdrop");
+function attachBottomSheetDrag({ sheet, panel, backdrop, close, snap, canStart }) {
   if (!sheet || !panel) return;
   let drag = null;
   let ignoreClick = false;
@@ -1412,6 +1424,7 @@ function initMoreSheetDrag() {
 
   panel.addEventListener("pointerdown", (event) => {
     if (event.button !== 0 || sheet.dataset.open !== "true") return;
+    if (canStart && !canStart(event)) return;
     drag = {
       pointerId: event.pointerId,
       startY: event.clientY,
@@ -1462,15 +1475,26 @@ function initMoreSheetDrag() {
       ignoreClick = false;
     }, 400);
     if (dy > 72 || (dy > 40 && velocity > 0.55)) {
-      closeMoreMenu();
+      close();
       return;
     }
-    snapMoreSheetBack();
+    snap();
   };
 
   panel.addEventListener("pointerup", endDrag);
   panel.addEventListener("pointercancel", endDrag);
-  backdrop?.addEventListener("click", () => closeMoreMenu());
+  backdrop?.addEventListener("click", () => close());
+}
+
+function initMoreSheetDrag() {
+  const { sheet, panel } = getMoreSheetParts();
+  attachBottomSheetDrag({
+    sheet,
+    panel,
+    backdrop: document.getElementById("moreMenuBackdrop"),
+    close: closeMoreMenu,
+    snap: snapMoreSheetBack,
+  });
 }
 
 function toggleMoreMenu() {
@@ -1481,6 +1505,365 @@ function toggleMoreMenu() {
     return;
   }
   openMoreMenu();
+}
+
+const SCENE_STORAGE_KEY = "ayahday-scene";
+const SCENE_BACKGROUNDS = [
+  { id: "stars", label: "Starry night", photoId: 1252890 },
+  { id: "dawn", label: "Dawn clouds", photoId: 66997 },
+  { id: "mist", label: "Misty mountains", photoId: 691668 },
+  { id: "sea", label: "Calm sea", photoId: 1001682 },
+  { id: "dunes", label: "Desert dunes", photoId: 1001435 },
+  { id: "forest", label: "Forest fog", photoId: 167699 },
+  { id: "night", label: "Quiet night", photoId: 998641 },
+];
+
+let sceneSheetMotion = 0;
+let sceneLoadGeneration = 0;
+let sceneFront = 0;
+let activeSceneId = "plain";
+let sceneLoadHintTimer = null;
+const SCENE_LOAD_TIMEOUT_MS = 20000;
+const SCENE_LOAD_HINT_MS = 3200;
+
+function pexelsImage(photoId, width) {
+  return `https://images.pexels.com/photos/${photoId}/pexels-photo-${photoId}.jpeg?auto=compress&cs=tinysrgb&w=${width}`;
+}
+
+function sceneById(id) {
+  return SCENE_BACKGROUNDS.find((scene) => scene.id === id) || null;
+}
+
+function readStoredSceneId() {
+  const id = localStorage.getItem(SCENE_STORAGE_KEY);
+  return sceneById(id) ? id : "plain";
+}
+
+function writeStoredSceneId(id) {
+  if (!id || id === "plain") {
+    localStorage.removeItem(SCENE_STORAGE_KEY);
+    return;
+  }
+  localStorage.setItem(SCENE_STORAGE_KEY, id);
+}
+
+function getSceneSheetParts() {
+  return {
+    trigger: document.getElementById("sceneBtn"),
+    sheet: document.getElementById("sceneSheet"),
+    panel: document.getElementById("sceneSheetPanel"),
+  };
+}
+
+function isSceneSheetOpen() {
+  return document.getElementById("sceneSheet")?.dataset.open === "true";
+}
+
+function scenePhotoEls() {
+  return [
+    document.getElementById("sceneBgPhotoA"),
+    document.getElementById("sceneBgPhotoB"),
+  ];
+}
+
+function preloadSceneImage(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    let settled = false;
+    const finish = (ok) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      img.onload = null;
+      img.onerror = null;
+      if (ok) resolve(url);
+      else reject(new Error("Scene image failed"));
+    };
+    const timer = setTimeout(() => {
+      img.src = "";
+      finish(false);
+    }, SCENE_LOAD_TIMEOUT_MS);
+    img.onload = () => finish(true);
+    img.onerror = () => finish(false);
+    img.src = url;
+  });
+}
+
+function setSceneLoading(loading) {
+  const btn = document.getElementById("sceneBtn");
+  const spinner = document.getElementById("sceneBtnSpinner");
+  if (btn) btn.setAttribute("aria-busy", loading ? "true" : "false");
+  if (spinner) spinner.hidden = !loading;
+}
+
+function hideSceneLoadHint() {
+  if (sceneLoadHintTimer) {
+    clearTimeout(sceneLoadHintTimer);
+    sceneLoadHintTimer = null;
+  }
+  const hint = document.getElementById("sceneLoadHint");
+  if (!hint) return;
+  hint.classList.remove("header-tooltip--open");
+  hint.hidden = true;
+}
+
+function showSceneLoadHint() {
+  const hint = document.getElementById("sceneLoadHint");
+  if (!hint) return;
+  hideSceneLoadHint();
+  hint.hidden = false;
+  requestAnimationFrame(() => hint.classList.add("header-tooltip--open"));
+  sceneLoadHintTimer = window.setTimeout(hideSceneLoadHint, SCENE_LOAD_HINT_MS);
+}
+
+function syncSceneControls() {
+  const btn = document.getElementById("sceneBtn");
+  if (btn) {
+    btn.setAttribute("aria-pressed", String(activeSceneId !== "plain"));
+  }
+  document.documentElement.classList.toggle("scene-on", activeSceneId !== "plain");
+  document.querySelectorAll("#sceneGrid [data-scene-id]").forEach((tile) => {
+    tile.setAttribute("aria-selected", String(tile.dataset.sceneId === activeSceneId));
+  });
+}
+
+function showSceneLayer() {
+  const layer = document.getElementById("sceneBg");
+  if (!layer) return;
+  layer.hidden = false;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => layer.classList.add("is-on"));
+  });
+}
+
+function hideSceneLayer() {
+  const layer = document.getElementById("sceneBg");
+  if (!layer || layer.hidden) return;
+  const generation = sceneLoadGeneration;
+  layer.classList.remove("is-on");
+  const finish = () => {
+    if (generation !== sceneLoadGeneration || activeSceneId !== "plain") return;
+    layer.hidden = true;
+  };
+  if (prefersReducedMotion()) {
+    finish();
+    return;
+  }
+  const onEnd = (event) => {
+    if (event.target !== layer || event.propertyName !== "opacity") return;
+    layer.removeEventListener("transitionend", onEnd);
+    finish();
+  };
+  layer.addEventListener("transitionend", onEnd);
+  setTimeout(finish, 560);
+}
+
+async function applyScene(id, { quiet = false } = {}) {
+  const generation = ++sceneLoadGeneration;
+  const scene = sceneById(id);
+  if (!scene) {
+    activeSceneId = "plain";
+    writeStoredSceneId("plain");
+    syncSceneControls();
+    setSceneLoading(false);
+    hideSceneLoadHint();
+    hideSceneLayer();
+    return;
+  }
+  setSceneLoading(true);
+  hideSceneLoadHint();
+  let url;
+  try {
+    url = await preloadSceneImage(pexelsImage(scene.photoId, 8000));
+  } catch {
+    if (generation !== sceneLoadGeneration) return;
+    setSceneLoading(false);
+    if (!quiet) showSceneLoadHint();
+    return;
+  }
+  if (generation !== sceneLoadGeneration) return;
+  const photos = scenePhotoEls();
+  const incoming = photos[1 - sceneFront];
+  const current = photos[sceneFront];
+  if (!incoming) {
+    setSceneLoading(false);
+    return;
+  }
+  incoming.style.backgroundImage = `url("${url}")`;
+  incoming.classList.add("is-visible");
+  current?.classList.remove("is-visible");
+  sceneFront = 1 - sceneFront;
+  activeSceneId = scene.id;
+  writeStoredSceneId(scene.id);
+  syncSceneControls();
+  restartSceneZoom();
+  showSceneLayer();
+  setSceneLoading(false);
+}
+
+function restartSceneZoom() {
+  const motion = document.querySelector(".scene-bg__motion");
+  if (!motion) return;
+  motion.style.animation = "none";
+  void motion.offsetWidth;
+  motion.style.animation = "";
+}
+
+function selectScene(id) {
+  closeSceneSheet();
+  if (id === activeSceneId) return;
+  void applyScene(id);
+}
+
+function renderSceneGrid() {
+  const grid = document.getElementById("sceneGrid");
+  if (!grid || grid.childElementCount) return;
+  const plain = document.createElement("button");
+  plain.type = "button";
+  plain.className = "scene-tile scene-tile--plain";
+  plain.dataset.sceneId = "plain";
+  plain.setAttribute("role", "option");
+  plain.setAttribute("aria-label", "No background");
+  plain.innerHTML =
+    '<svg class="scene-tile__cancel" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.75"/><path d="M6.2 6.2 17.8 17.8" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>';
+  grid.appendChild(plain);
+
+  SCENE_BACKGROUNDS.forEach((scene) => {
+    const tile = document.createElement("button");
+    tile.type = "button";
+    tile.className = "scene-tile";
+    tile.dataset.sceneId = scene.id;
+    tile.setAttribute("role", "option");
+    tile.setAttribute("aria-label", scene.label);
+    const img = document.createElement("img");
+    img.className = "scene-tile__img";
+    img.alt = "";
+    img.width = 240;
+    img.height = 180;
+    img.loading = "lazy";
+    img.decoding = "async";
+    img.src = pexelsImage(scene.photoId, 320);
+    const label = document.createElement("span");
+    label.className = "scene-tile__label";
+    label.textContent = scene.label;
+    tile.append(img, label);
+    grid.appendChild(tile);
+  });
+
+  grid.addEventListener("click", (event) => {
+    const tile = event.target.closest("[data-scene-id]");
+    if (!tile || !grid.contains(tile)) return;
+    selectScene(tile.dataset.sceneId);
+  });
+}
+
+function openSceneSheet() {
+  const { trigger, sheet, panel } = getSceneSheetParts();
+  if (!trigger || !sheet || !panel) return;
+  closeSavedMenu();
+  closeLanguageMenu();
+  closeMoreMenu();
+  sceneSheetMotion += 1;
+  panel.classList.remove("more-sheet__panel--dragging");
+  panel.style.transform = "";
+  panel.style.transition = "";
+  sheet.hidden = false;
+  sheet.dataset.open = "false";
+  sheet.setAttribute("aria-hidden", "false");
+  panel.setAttribute("aria-hidden", "false");
+  void sheet.offsetWidth;
+  sheet.dataset.open = "true";
+  trigger.setAttribute("aria-expanded", "true");
+  setReelScrollPaused(true);
+  panel.focus({ preventScroll: true });
+}
+
+function closeSceneSheet() {
+  const { trigger, sheet, panel } = getSceneSheetParts();
+  if (!trigger || !sheet || !panel) return;
+  if (sheet.dataset.open !== "true") return;
+  const motion = ++sceneSheetMotion;
+  const returnFocus = sheet.contains(document.activeElement);
+  sheet.dataset.open = "false";
+  trigger.setAttribute("aria-expanded", "false");
+  panel.setAttribute("aria-hidden", "true");
+  if (!isReelChromeOpen()) setReelScrollPaused(false);
+
+  panel.classList.remove("more-sheet__panel--dragging");
+  if (panel.style.transform) {
+    const from = panel.style.transform;
+    panel.style.transition = "none";
+    panel.style.transform = from;
+    void panel.offsetWidth;
+    panel.style.transition = "transform 320ms cubic-bezier(0.22, 1, 0.36, 1)";
+    panel.style.transform = "translateY(110%)";
+  }
+
+  const finish = (event) => {
+    if (event && event.target !== panel) return;
+    if (event && event.propertyName && event.propertyName !== "transform") return;
+    panel.removeEventListener("transitionend", finish);
+    if (motion !== sceneSheetMotion) return;
+    panel.style.transform = "";
+    panel.style.transition = "";
+    sheet.hidden = true;
+    sheet.setAttribute("aria-hidden", "true");
+  };
+  panel.addEventListener("transitionend", finish);
+  setTimeout(finish, 420);
+  if (returnFocus) trigger.focus({ preventScroll: true });
+}
+
+function snapSceneSheetBack() {
+  const { sheet, panel } = getSceneSheetParts();
+  if (!panel || sheet?.dataset.open !== "true") return;
+  const motion = ++sceneSheetMotion;
+  panel.classList.remove("more-sheet__panel--dragging");
+  const from = panel.style.transform || "translateY(0px)";
+  panel.style.transition = "none";
+  panel.style.transform = from;
+  void panel.offsetWidth;
+  panel.style.transition = "transform 320ms cubic-bezier(0.22, 1, 0.36, 1)";
+  panel.style.transform = "translateY(0px)";
+  const clear = (event) => {
+    if (event && event.propertyName !== "transform") return;
+    panel.removeEventListener("transitionend", clear);
+    if (motion !== sceneSheetMotion || sheet.dataset.open !== "true") return;
+    panel.style.transition = "";
+  };
+  panel.addEventListener("transitionend", clear);
+}
+
+function toggleSceneSheet() {
+  if (isSceneSheetOpen()) {
+    closeSceneSheet();
+    return;
+  }
+  openSceneSheet();
+}
+
+function initSceneSheetDrag() {
+  const { sheet, panel } = getSceneSheetParts();
+  attachBottomSheetDrag({
+    sheet,
+    panel,
+    backdrop: document.getElementById("sceneSheetBackdrop"),
+    close: closeSceneSheet,
+    snap: snapSceneSheetBack,
+    canStart: (event) => Boolean(event.target.closest(".more-sheet__grab")),
+  });
+}
+
+function initSceneBackground() {
+  renderSceneGrid();
+  syncSceneControls();
+  document.getElementById("sceneBtn")?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    toggleSceneSheet();
+  });
+  initSceneSheetDrag();
+  const stored = readStoredSceneId();
+  if (stored !== "plain") void applyScene(stored, { quiet: true });
 }
 
 function getShareTooltipEls() {
@@ -2604,6 +2987,7 @@ function openSavedMenu() {
   if (!menu || !trigger || !dropdown) return;
   closeMoreMenu();
   closeLanguageMenu();
+  closeSceneSheet();
   closeHeaderTooltip("savedMenuHint");
   renderSavedReflectionsList();
   menu.dataset.open = "true";
